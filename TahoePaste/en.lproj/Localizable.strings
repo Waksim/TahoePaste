@@ -46,8 +46,10 @@
 "settings.hotkey_status" = "Hotkey status";
 "settings.language" = "Language";
 "settings.launch_at_login" = "Launch at login";
+"settings.launch_at_login_help" = "Start TahoePaste automatically when you sign in to this Mac.";
 "settings.maximum_history_items" = "Maximum history items";
 "settings.not_granted" = "Not granted";
+"settings.open_login_items_settings" = "Open Login Items Settings";
 "settings.open_accessibility_settings" = "Open Accessibility Settings";
 "settings.overlay_height" = "Overlay height";
 "settings.paste_delay" = "Paste delay";
@@ -84,6 +86,7 @@
 "status.invalid_png" = "The copied image couldn't be saved as PNG.";
 "status.launch_at_login_disable_failed" = "TahoePaste couldn't disable launch at login.";
 "status.launch_at_login_enable_failed" = "TahoePaste couldn't enable launch at login.";
+"status.launch_at_login_needs_approval" = "Finish enabling launch at login in System Settings > General > Login Items.";
 "status.load_history_failed" = "Couldn't load saved clipboard history.";
 "status.monitoring_active" = "Monitoring active";
 "status.monitoring_paused" = "Monitoring paused";

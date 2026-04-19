@@ -65,6 +65,19 @@ struct SettingsView: View {
                 )
             )
 
+            Text(L10n.tr("settings.launch_at_login_help"))
+                .font(.system(size: 11, weight: .medium, design: .rounded))
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+
+            if settingsManager.launchAtLoginRequiresApproval {
+                Button {
+                    settingsManager.openLoginItemsSettings()
+                } label: {
+                    Label(L10n.tr("settings.open_login_items_settings"), systemImage: "arrow.up.forward.app")
+                }
+            }
+
             Toggle(L10n.tr("settings.show_menu_bar"), isOn: showMenuBarIconBinding)
 
             Text(L10n.tr("settings.show_menu_bar_help"))
@@ -89,7 +102,7 @@ struct SettingsView: View {
             if let message = settingsManager.launchAtLoginStatusMessage {
                 Text(message)
                     .font(.system(size: 11, weight: .medium, design: .rounded))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(settingsManager.launchAtLoginRequiresApproval ? Color.orange : Color.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
