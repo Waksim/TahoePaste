@@ -29,6 +29,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var cancellables = Set<AnyCancellable>()
     private var hotkeyRegistrationSucceeded = false
     private var hotkeyRegistrationErrorKey: String?
+    private var systemAppearanceObservation: NSKeyValueObservation?
 
     override init() {
         let storageManager = StorageManager()
@@ -56,7 +57,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         refreshAccessibilityStatus()
         accessibilityPermissionManager.requestAccessibilityIfNeededOnFirstLaunch()
         refreshAccessibilityStatus()
+        settingsManager.refreshThemeState(systemAppearance: NSApp.effectiveAppearance)
         configureSettingsBindings()
+        configureSystemAppearanceObservation()
         configureClipboardManager()
         configureHotkeyController()
         configureMenuBarController()
@@ -69,6 +72,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidBecomeActive(_ notification: Notification) {
         DispatchQueue.main.async { [weak self] in
             self?.refreshAccessibilityStatus()
+            self?.settingsManager.refreshThemeState(systemAppearance: NSApp.effectiveAppearance)
         }
     }
 
@@ -152,6 +156,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func configureClipboardManager() {
         clipboardManager.onCapture = { [weak self] payload in
             self?.handleClipboardPayload(payload)
+        }
+    }
+
+    private func configureSystemAppearanceObservation() {
+        systemAppearanceObservation = NSApp.observe(\.effectiveAppearance, options: [.new]) { [weak self] app, _ in
+            Task { @MainActor in
+                self?.settingsManager.refreshThemeState(systemAppearance: app.effectiveAppearance)
+            }
         }
     }
 
