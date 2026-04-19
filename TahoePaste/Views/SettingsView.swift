@@ -24,6 +24,7 @@ struct SettingsView: View {
         }
         .frame(width: 700, height: 760)
         .background(Color(nsColor: .windowBackgroundColor))
+        .preferredColorScheme(settingsManager.preferredColorScheme)
         .confirmationDialog(
             L10n.tr("dialog.delete_history_title"),
             isPresented: $isShowingDeleteConfirmation
@@ -129,6 +130,20 @@ struct SettingsView: View {
         )
     }
 
+    private var dayThemeStartBinding: Binding<Date> {
+        Binding(
+            get: { SettingsManager.dateForTimePicker(minutesSinceMidnight: settingsManager.dayThemeStartMinutes) },
+            set: { settingsManager.dayThemeStartMinutes = SettingsManager.minutesSinceMidnight(from: $0) }
+        )
+    }
+
+    private var nightThemeStartBinding: Binding<Date> {
+        Binding(
+            get: { SettingsManager.dateForTimePicker(minutesSinceMidnight: settingsManager.nightThemeStartMinutes) },
+            set: { settingsManager.nightThemeStartMinutes = SettingsManager.minutesSinceMidnight(from: $0) }
+        )
+    }
+
     private var clipboardSection: some View {
         settingsCard(L10n.tr("settings.section.clipboard"), systemImage: "doc.on.clipboard") {
             Toggle(L10n.tr("settings.capture_text"), isOn: $settingsManager.captureText)
@@ -187,6 +202,43 @@ struct SettingsView: View {
 
     private var appearanceSection: some View {
         settingsCard(L10n.tr("settings.section.appearance"), systemImage: "rectangle.3.group") {
+            Picker(L10n.tr("settings.theme_mode"), selection: $settingsManager.themeMode) {
+                ForEach(SettingsManager.ThemeMode.allCases) { mode in
+                    Text(mode.title).tag(mode)
+                }
+            }
+
+            Text(L10n.tr("settings.theme_mode_help"))
+                .font(.system(size: 11, weight: .medium, design: .rounded))
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+
+            LabeledContent(L10n.tr("settings.active_theme")) {
+                Text(settingsManager.activeTheme.title)
+                    .foregroundStyle(.secondary)
+            }
+
+            if settingsManager.themeMode == .scheduled {
+                DatePicker(
+                    L10n.tr("settings.day_theme_starts"),
+                    selection: dayThemeStartBinding,
+                    displayedComponents: [.hourAndMinute]
+                )
+
+                DatePicker(
+                    L10n.tr("settings.night_theme_starts"),
+                    selection: nightThemeStartBinding,
+                    displayedComponents: [.hourAndMinute]
+                )
+
+                Text(L10n.tr("settings.theme_schedule_help"))
+                    .font(.system(size: 11, weight: .medium, design: .rounded))
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                Divider()
+            }
+
             VStack(alignment: .leading, spacing: 8) {
                 HStack {
                     Text(L10n.tr("settings.overlay_height"))

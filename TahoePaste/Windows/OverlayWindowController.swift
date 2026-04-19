@@ -1,4 +1,5 @@
 import AppKit
+import Combine
 import SwiftUI
 
 @MainActor
@@ -10,10 +11,12 @@ final class OverlayWindowController {
     private var localEventMonitor: Any?
     private var globalEventMonitor: Any?
     private var resignObserver: NSObjectProtocol?
+    private var cancellables = Set<AnyCancellable>()
 
     init(viewModel: ClipboardHistoryViewModel, settingsManager: SettingsManager) {
         self.viewModel = viewModel
         self.settingsManager = settingsManager
+        bindThemeUpdates()
     }
 
     var isVisible: Bool {
@@ -72,6 +75,7 @@ final class OverlayWindowController {
         panel.titleVisibility = .hidden
         panel.titlebarAppearsTransparent = true
         panel.isMovable = false
+        panel.appearance = settingsManager.nsAppearance
         panel.onEscape = { [weak self] in
             guard let self else {
                 return
@@ -85,6 +89,26 @@ final class OverlayWindowController {
         }
 
         return panel
+    }
+
+    private func bindThemeUpdates() {
+        settingsManager.$themeMode
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in
+                self?.applyTheme()
+            }
+            .store(in: &cancellables)
+
+        settingsManager.$activeTheme
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in
+                self?.applyTheme()
+            }
+            .store(in: &cancellables)
+    }
+
+    private func applyTheme() {
+        panel.appearance = settingsManager.nsAppearance
     }
 
     private func updateFrame(for screen: NSScreen?) {

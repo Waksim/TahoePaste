@@ -34,11 +34,26 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
 
         super.init(window: window)
         self.window?.delegate = self
+        applyTheme()
 
         settingsManager.$appLanguage
             .receive(on: RunLoop.main)
             .sink { [weak self] _ in
                 self?.window?.title = L10n.tr("settings.window_title")
+            }
+            .store(in: &cancellables)
+
+        settingsManager.$themeMode
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in
+                self?.applyTheme()
+            }
+            .store(in: &cancellables)
+
+        settingsManager.$activeTheme
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in
+                self?.applyTheme()
             }
             .store(in: &cancellables)
     }
@@ -55,5 +70,9 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
 
         NSApplication.shared.activate(ignoringOtherApps: true)
         window.makeKeyAndOrderFront(nil)
+    }
+
+    private func applyTheme() {
+        window?.appearance = settingsManager.nsAppearance
     }
 }

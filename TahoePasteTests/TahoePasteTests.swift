@@ -202,10 +202,117 @@ final class TahoePasteTests: XCTestCase {
         XCTAssertNil(SettingsManager.launchAtLoginStatusMessage(for: .enabled))
     }
 
+    func testSystemThemeModeMapsSystemAppearanceToDayAndNightThemes() {
+        XCTAssertEqual(
+            SettingsManager.resolvedTheme(
+                mode: .system,
+                systemIsDark: false,
+                dayThemeStartMinutes: 8 * 60,
+                nightThemeStartMinutes: 20 * 60,
+                nowMinutesSinceMidnight: 13 * 60
+            ),
+            .day
+        )
+
+        XCTAssertEqual(
+            SettingsManager.resolvedTheme(
+                mode: .system,
+                systemIsDark: true,
+                dayThemeStartMinutes: 8 * 60,
+                nightThemeStartMinutes: 20 * 60,
+                nowMinutesSinceMidnight: 13 * 60
+            ),
+            .night
+        )
+    }
+
+    func testScheduledThemeUsesDayBetweenConfiguredStartTimes() {
+        XCTAssertEqual(
+            SettingsManager.resolvedTheme(
+                mode: .scheduled,
+                systemIsDark: false,
+                dayThemeStartMinutes: 8 * 60,
+                nightThemeStartMinutes: 20 * 60,
+                nowMinutesSinceMidnight: 9 * 60
+            ),
+            .day
+        )
+
+        XCTAssertEqual(
+            SettingsManager.resolvedTheme(
+                mode: .scheduled,
+                systemIsDark: false,
+                dayThemeStartMinutes: 8 * 60,
+                nightThemeStartMinutes: 20 * 60,
+                nowMinutesSinceMidnight: 21 * 60
+            ),
+            .night
+        )
+    }
+
+    func testScheduledThemeSupportsIntervalsThatWrapPastMidnight() {
+        XCTAssertEqual(
+            SettingsManager.resolvedTheme(
+                mode: .scheduled,
+                systemIsDark: false,
+                dayThemeStartMinutes: 20 * 60,
+                nightThemeStartMinutes: 8 * 60,
+                nowMinutesSinceMidnight: 23 * 60
+            ),
+            .day
+        )
+
+        XCTAssertEqual(
+            SettingsManager.resolvedTheme(
+                mode: .scheduled,
+                systemIsDark: false,
+                dayThemeStartMinutes: 20 * 60,
+                nightThemeStartMinutes: 8 * 60,
+                nowMinutesSinceMidnight: 10 * 60
+            ),
+            .night
+        )
+    }
+
     func testClipboardContentClassifierDetectsLinksAndCode() {
         XCTAssertEqual(ClipboardContentClassifier.classify(text: "https://openai.com"), .link)
         XCTAssertEqual(ClipboardContentClassifier.classify(text: "git status"), .code)
         XCTAssertEqual(ClipboardContentClassifier.classify(text: "A regular note"), .text)
+    }
+
+    func testClipboardContentClassifierDetectsContactAndScheduleTags() {
+        let text = "Write me at hello@example.com or call +1 (415) 555-2671 tomorrow at 10:30."
+        let tags = ClipboardContentClassifier.detectedTags(for: text)
+
+        XCTAssertTrue(tags.contains(.email))
+        XCTAssertTrue(tags.contains(.phone))
+        XCTAssertTrue(tags.contains(.dateTime))
+    }
+
+    func testClipboardContentClassifierDetectsPasswordAndTokenTags() {
+        let credentialsText = "Password: Str0ng!Pass2026"
+        let tokenText = "Authorization: Bearer sk_live_1234567890ABCDEF"
+
+        XCTAssertTrue(ClipboardContentClassifier.detectedTags(for: credentialsText).contains(.password))
+        XCTAssertTrue(ClipboardContentClassifier.detectedTags(for: tokenText).contains(.token))
+    }
+
+    func testClipboardSearchMatchesTextDerivedTagKeywords() {
+        let item = ClipboardItem(
+            id: UUID(),
+            kind: .text,
+            createdAt: Date(),
+            text: "Reach me at hello@example.com",
+            textPreview: "Reach me at hello@example.com",
+            imageFilename: nil,
+            pixelSize: nil,
+            fileReferences: nil
+        )
+
+        let matches = ClipboardSearchEngine.matches(for: [item], query: "email")
+
+        XCTAssertTrue(item.tags.contains(.email))
+        XCTAssertEqual(matches.first?.id, item.id)
     }
 
     func testStorageManagerStoresFilePayloads() throws {

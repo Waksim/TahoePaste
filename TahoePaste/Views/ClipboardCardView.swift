@@ -12,6 +12,10 @@ struct ClipboardCardView: View {
 
     @State private var isHovered = false
 
+    private var themePalette: SettingsManager.ThemePalette {
+        settingsManager.themePalette
+    }
+
     private var cardWidth: CGFloat {
         item.isImage ? settingsManager.cardSizePreset.imageCardWidth : settingsManager.cardSizePreset.textCardWidth
     }
@@ -153,14 +157,22 @@ struct ClipboardCardView: View {
             if settingsManager.showMetadataOnCards, let metadataText, metadataText.isEmpty == false {
                 Text(metadataText)
                     .font(.system(size: 10, weight: .medium, design: .rounded))
-                    .foregroundStyle(Color.white.opacity(item.isImage ? 0.72 : 0.50))
+                    .foregroundStyle(
+                        item.isImage
+                            ? themePalette.imageMetadataText.opacity(0.72)
+                            : themePalette.cardTextMetadata.opacity(0.82)
+                    )
                     .lineLimit(1)
             }
 
             if settingsManager.showTimestampsOnCards {
                 Text(item.timestampText(locale: locale))
                     .font(.system(size: 10, weight: .medium, design: .rounded))
-                    .foregroundStyle(Color.white.opacity(item.isImage ? 0.72 : 0.46))
+                    .foregroundStyle(
+                        item.isImage
+                            ? themePalette.imageMetadataText.opacity(0.72)
+                            : themePalette.cardTextMetadata.opacity(0.76)
+                    )
                     .lineLimit(1)
             }
         }
@@ -174,9 +186,9 @@ struct ClipboardCardView: View {
                     Text(L10n.tr(tag.titleKey))
                         .font(.system(size: 11, weight: .semibold, design: .rounded))
                         .foregroundStyle(
-                            activeTagFilter == tag
-                                ? Color.white.opacity(0.96)
-                                : Color.white.opacity(item.isImage ? 0.88 : 0.78)
+                            item.isImage
+                                ? themePalette.imageTagText.opacity(activeTagFilter == tag ? 0.96 : 0.88)
+                                : themePalette.cardTextTag.opacity(activeTagFilter == tag ? 0.96 : 0.78)
                         )
                         .contentShape(Rectangle())
                 }
@@ -191,8 +203,7 @@ struct ClipboardCardView: View {
         Image(systemName: "xmark")
             .font(.system(size: 9, weight: .semibold))
             .foregroundStyle(
-                Color(red: 0.72, green: 0.75, blue: 0.80)
-                    .opacity(isHovered ? 0.92 : 0.66)
+                themePalette.cardDeleteIcon.opacity(isHovered ? 0.92 : 0.66)
             )
             .frame(width: 18, height: 18)
             .contentShape(Rectangle())
@@ -208,10 +219,10 @@ struct ClipboardCardView: View {
 
     private var previewColor: Color {
         if item.isLink {
-            return Color(red: 0.84, green: 0.92, blue: 1.0)
+            return themePalette.cardLinkText
         }
 
-        return .white
+        return themePalette.cardPrimaryText
     }
 
     private var cardBackground: some View {
@@ -219,8 +230,8 @@ struct ClipboardCardView: View {
             .fill(
                 LinearGradient(
                     colors: [
-                        Color(red: 0.20, green: 0.23, blue: 0.29),
-                        Color(red: 0.10, green: 0.12, blue: 0.16)
+                        themePalette.cardGradientTop,
+                        themePalette.cardGradientBottom
                     ],
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
@@ -230,7 +241,7 @@ struct ClipboardCardView: View {
 
     private var cardBorder: some View {
         cardShape
-            .strokeBorder(Color.white.opacity(0.10), lineWidth: 1)
+            .strokeBorder(themePalette.cardBorder, lineWidth: 1)
     }
 
     private var cardShape: RoundedRectangle {
@@ -249,8 +260,8 @@ struct ClipboardCardView: View {
             ZStack {
                 LinearGradient(
                     colors: [
-                        Color(red: 0.20, green: 0.23, blue: 0.29),
-                        Color(red: 0.10, green: 0.12, blue: 0.16)
+                        themePalette.cardGradientTop,
+                        themePalette.cardGradientBottom
                     ],
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
@@ -262,7 +273,7 @@ struct ClipboardCardView: View {
                     Text(L10n.tr("card.preview_unavailable"))
                         .font(.system(size: 12, weight: .medium, design: .rounded))
                 }
-                .foregroundStyle(Color.white.opacity(0.66))
+                .foregroundStyle(themePalette.imageFallbackText)
             }
         }
     }

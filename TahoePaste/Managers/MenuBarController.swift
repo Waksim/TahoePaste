@@ -93,6 +93,20 @@ final class MenuBarController: NSObject {
                 self?.refreshStatusButtonAppearance()
             }
             .store(in: &cancellables)
+
+        settingsManager.$themeMode
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in
+                self?.refreshMenuAppearance()
+            }
+            .store(in: &cancellables)
+
+        settingsManager.$activeTheme
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in
+                self?.refreshMenuAppearance()
+            }
+            .store(in: &cancellables)
     }
 
     private func installStatusItemIfNeeded() {
@@ -109,9 +123,11 @@ final class MenuBarController: NSObject {
             button.imagePosition = .imageOnly
             button.toolTip = L10n.tr("common.tahoepaste")
             button.sendAction(on: [.leftMouseUp, .rightMouseUp])
+            button.appearance = settingsManager.nsAppearance
         }
 
         statusItem = item
+        refreshMenuAppearance()
         refreshStatusButtonAppearance()
     }
 
@@ -138,6 +154,11 @@ final class MenuBarController: NSObject {
 
     private func refreshStatusButtonAppearance() {
         statusItem?.button?.image = menuBarImage()
+    }
+
+    private func refreshMenuAppearance() {
+        menu.appearance = settingsManager.nsAppearance
+        statusItem?.button?.appearance = settingsManager.nsAppearance
     }
 
     private func menuBarImage() -> NSImage? {
