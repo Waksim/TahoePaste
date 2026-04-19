@@ -46,8 +46,10 @@
 "settings.hotkey_status" = "Статус горячей клавиши";
 "settings.language" = "Язык";
 "settings.launch_at_login" = "Запускать при входе";
+"settings.launch_at_login_help" = "Автоматически запускать TahoePaste после входа в этот Mac.";
 "settings.maximum_history_items" = "Максимум элементов в истории";
 "settings.not_granted" = "Не выдан";
+"settings.open_login_items_settings" = "Открыть Login Items";
 "settings.open_accessibility_settings" = "Открыть настройки универсального доступа";
 "settings.overlay_height" = "Высота панели";
 "settings.paste_delay" = "Задержка перед вставкой";
@@ -84,6 +86,7 @@
 "status.invalid_png" = "Не удалось сохранить скопированное изображение в PNG.";
 "status.launch_at_login_disable_failed" = "TahoePaste не удалось отключить запуск при входе.";
 "status.launch_at_login_enable_failed" = "TahoePaste не удалось включить запуск при входе.";
+"status.launch_at_login_needs_approval" = "Заверши включение автозапуска в Системных настройках > Основные > Объекты входа.";
 "status.load_history_failed" = "Не удалось загрузить сохранённую историю буфера.";
 "status.monitoring_active" = "Мониторинг активен";
 "status.monitoring_paused" = "Мониторинг на паузе";

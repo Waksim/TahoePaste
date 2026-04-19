@@ -1,4 +1,5 @@
 import AppKit
+import ServiceManagement
 import XCTest
 @testable import TahoePaste
 
@@ -185,6 +186,20 @@ final class TahoePasteTests: XCTestCase {
         XCTAssertEqual(SettingsManager.normalizedMaximumHistoryItems(-50), 0)
         XCTAssertEqual(SettingsManager.normalizedMaximumHistoryItems(5), 10)
         XCTAssertEqual(SettingsManager.normalizedMaximumHistoryItems(2000), 1000)
+    }
+
+    func testLaunchAtLoginStateTreatsApprovalAsEnabled() {
+        XCTAssertTrue(SettingsManager.isLaunchAtLoginEnabled(for: .enabled))
+        XCTAssertTrue(SettingsManager.isLaunchAtLoginEnabled(for: .requiresApproval))
+        XCTAssertFalse(SettingsManager.isLaunchAtLoginEnabled(for: .notRegistered))
+    }
+
+    func testLaunchAtLoginStatusMessageAppearsOnlyWhenApprovalIsNeeded() {
+        XCTAssertEqual(
+            SettingsManager.launchAtLoginStatusMessage(for: .requiresApproval),
+            L10n.tr("status.launch_at_login_needs_approval")
+        )
+        XCTAssertNil(SettingsManager.launchAtLoginStatusMessage(for: .enabled))
     }
 
     func testClipboardContentClassifierDetectsLinksAndCode() {

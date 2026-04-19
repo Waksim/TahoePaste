@@ -144,6 +144,7 @@ final class SettingsManager: ObservableObject {
 
     @Published private(set) var launchAtLogin: Bool
     @Published private(set) var launchAtLoginStatusMessage: String?
+    @Published private(set) var launchAtLoginRequiresApproval: Bool
 
     @Published var autoPasteAfterSelection: Bool {
         didSet { persist(autoPasteAfterSelection, forKey: Keys.autoPasteAfterSelection) }
@@ -235,7 +236,10 @@ final class SettingsManager: ObservableObject {
             min: 0,
             max: 28
         )
-        self.launchAtLogin = Self.currentLaunchAtLoginState()
+        let launchAtLoginStatus = Self.currentLaunchAtLoginStatus()
+        self.launchAtLogin = Self.isLaunchAtLoginEnabled(for: launchAtLoginStatus)
+        self.launchAtLoginStatusMessage = Self.launchAtLoginStatusMessage(for: launchAtLoginStatus)
+        self.launchAtLoginRequiresApproval = Self.launchAtLoginRequiresApproval(for: launchAtLoginStatus)
     }
 
     var monitoringStatusText: String {
@@ -272,10 +276,9 @@ final class SettingsManager: ObservableObject {
                 try service.unregister()
             }
 
-            launchAtLogin = enabled
-            launchAtLoginStatusMessage = nil
+            syncLaunchAtLoginState(with: service.status)
         } catch {
-            launchAtLogin = Self.currentLaunchAtLoginState()
+            syncLaunchAtLoginState()
             launchAtLoginStatusMessage = enabled
                 ? L10n.tr("status.launch_at_login_enable_failed")
                 : L10n.tr("status.launch_at_login_disable_failed")
@@ -283,7 +286,11 @@ final class SettingsManager: ObservableObject {
     }
 
     func refreshLaunchAtLoginState() {
-        launchAtLogin = Self.currentLaunchAtLoginState()
+        syncLaunchAtLoginState()
+    }
+
+    func openLoginItemsSettings() {
+        SMAppService.openSystemSettingsLoginItems()
     }
 
     private func persist(_ value: Bool, forKey key: String) {
@@ -302,13 +309,37 @@ final class SettingsManager: ObservableObject {
         defaults.set(value, forKey: key)
     }
 
-    private static func currentLaunchAtLoginState() -> Bool {
-        switch SMAppService.mainApp.status {
-        case .enabled:
+    private func syncLaunchAtLoginState(with status: SMAppService.Status? = nil) {
+        let resolvedStatus = status ?? Self.currentLaunchAtLoginStatus()
+        launchAtLogin = Self.isLaunchAtLoginEnabled(for: resolvedStatus)
+        launchAtLoginStatusMessage = Self.launchAtLoginStatusMessage(for: resolvedStatus)
+        launchAtLoginRequiresApproval = Self.launchAtLoginRequiresApproval(for: resolvedStatus)
+    }
+
+    nonisolated static func isLaunchAtLoginEnabled(for status: SMAppService.Status) -> Bool {
+        switch status {
+        case .enabled, .requiresApproval:
             return true
         default:
             return false
         }
+    }
+
+    nonisolated static func launchAtLoginStatusMessage(for status: SMAppService.Status) -> String? {
+        switch status {
+        case .requiresApproval:
+            return L10n.tr("status.launch_at_login_needs_approval")
+        default:
+            return nil
+        }
+    }
+
+    nonisolated static func launchAtLoginRequiresApproval(for status: SMAppService.Status) -> Bool {
+        status == .requiresApproval
+    }
+
+    private static func currentLaunchAtLoginStatus() -> SMAppService.Status {
+        SMAppService.mainApp.status
     }
 
     nonisolated static func normalizedFiniteHistoryItems(_ value: Int) -> Int {
