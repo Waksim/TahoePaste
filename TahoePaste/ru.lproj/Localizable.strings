@@ -1,7 +1,7 @@
 "accessibility.disabled_banner" = "Универсальный доступ отключён. TahoePaste может вернуть элемент в буфер, но нажать Cmd + V придётся вручную.";
 "accessibility.enabled_banner" = "Универсальный доступ включён. TahoePaste может автоматически вставлять элемент в последнее приложение.";
 "card.code" = "Код";
-"card.email" = "Email";
+"card.email" = "Почта";
 "card.phone" = "Телефон";
 "card.password" = "Пароль";
 "card.token" = "Токен";
@@ -55,7 +55,7 @@
 "settings.launch_at_login_help" = "Автоматически запускать TahoePaste после входа в этот Mac.";
 "settings.maximum_history_items" = "Максимум элементов в истории";
 "settings.not_granted" = "Не выдан";
-"settings.open_login_items_settings" = "Открыть Login Items";
+"settings.open_login_items_settings" = "Открыть объекты входа";
 "settings.open_accessibility_settings" = "Открыть настройки универсального доступа";
 "settings.overlay_height" = "Высота панели";
 "settings.paste_delay" = "Задержка перед вставкой";

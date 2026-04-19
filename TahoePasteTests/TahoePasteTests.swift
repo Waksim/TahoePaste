@@ -202,6 +202,17 @@ final class TahoePasteTests: XCTestCase {
         XCTAssertNil(SettingsManager.launchAtLoginStatusMessage(for: .enabled))
     }
 
+    func testLocalizationFilesShareTheSameKeySetAcrossSupportedLanguages() throws {
+        let englishEntries = try localizationEntries(for: "en")
+        let russianEntries = try localizationEntries(for: "ru")
+        let chineseEntries = try localizationEntries(for: "zh-Hans")
+
+        XCTAssertEqual(Set(englishEntries.keys), Set(russianEntries.keys))
+        XCTAssertEqual(Set(englishEntries.keys), Set(chineseEntries.keys))
+        XCTAssertFalse(russianEntries.values.contains(where: \.isEmpty))
+        XCTAssertFalse(chineseEntries.values.contains(where: \.isEmpty))
+    }
+
     func testSystemThemeModeMapsSystemAppearanceToDayAndNightThemes() {
         XCTAssertEqual(
             SettingsManager.resolvedTheme(
@@ -412,5 +423,30 @@ final class TahoePasteTests: XCTestCase {
         image.addRepresentation(bitmap)
 
         return image
+    }
+
+    private func localizationEntries(for localeIdentifier: String) throws -> [String: String] {
+        let projectRootURL = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+        let fileURL = projectRootURL
+            .appendingPathComponent("TahoePaste")
+            .appendingPathComponent("\(localeIdentifier).lproj")
+            .appendingPathComponent("Localizable.strings")
+        let contents = try String(contentsOf: fileURL, encoding: .utf8)
+        let pattern = try NSRegularExpression(pattern: #"^"([^"]+)"\s*=\s*"((?:[^"\\]|\\.)*)";"#, options: [.anchorsMatchLines])
+        let range = NSRange(contents.startIndex..<contents.endIndex, in: contents)
+        var entries: [String: String] = [:]
+
+        for match in pattern.matches(in: contents, options: [], range: range) {
+            guard let keyRange = Range(match.range(at: 1), in: contents),
+                  let valueRange = Range(match.range(at: 2), in: contents) else {
+                continue
+            }
+
+            entries[String(contents[keyRange])] = String(contents[valueRange])
+        }
+
+        return entries
     }
 }
