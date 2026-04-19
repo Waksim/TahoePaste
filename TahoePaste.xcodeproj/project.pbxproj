@@ -1,0 +1,593 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		00878BB02AD692CA0453CC29 /* AccessibilityPermissionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BA59F6AA2066FDE5B5C6A67 /* AccessibilityPermissionManager.swift */; };
+		02E7E92A9BAD4CCE7B117187 /* ClipboardContentClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = E32140C0FC6744E00AA1D46F /* ClipboardContentClassifier.swift */; };
+		02F46F9E08BD5EEC030CC60D /* OverlayWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1382C1DD949D9F1F524296D9 /* OverlayWindowController.swift */; };
+		08F585662EA822F037F536F3 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74A22A765640C176CCCF227C /* SettingsView.swift */; };
+		18E8CF6BF2E4E9257993976A /* L10n.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD9D0066E68E9AFB605ACFA2 /* L10n.swift */; };
+		18F4C57F07569ACEF7CBEABC /* AppCommands.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EB4D063158AE83A1A8C0D82 /* AppCommands.swift */; };
+		333DDC543FCB4B9644298BFD /* ClipboardManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBA78438809312D245CF9E0E /* ClipboardManager.swift */; };
+		439F75D97902482CC60A5C50 /* ClipboardSearchEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 765FB33F69CE0CD06A4562B0 /* ClipboardSearchEngine.swift */; };
+		44CDB3382B0FB64DA066FBAD /* ClipboardItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7353AB61982940BD95803E08 /* ClipboardItem.swift */; };
+		4B1FE31615E506DB7D7C6D7A /* ClipboardHistoryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 488BC6119C96BCB6AB725334 /* ClipboardHistoryViewModel.swift */; };
+		63FD50A4444ED901D4BBA8A2 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = F7B0169F14B07A8A0E1A18D3 /* Localizable.strings */; };
+		66AEBD29AC2766AC6CC7B8D0 /* AppLanguage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39983B8844F4D211AF47CB1C /* AppLanguage.swift */; };
+		70913E74AFE69246AC912210 /* StorageManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 611E0B2BE3E96B1F5D903C36 /* StorageManager.swift */; };
+		739F122E7AB01A9EB5656B83 /* MenuBarIconView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BAA387C20982BAFA7374FE63 /* MenuBarIconView.swift */; };
+		9425FE18D81F949FC6ACC766 /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC6BB5A91566E9E5CAE5F428 /* MenuBarView.swift */; };
+		947D68A485DA3F7F895256F0 /* TahoePasteTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 041C9B33F3C21AD701210B82 /* TahoePasteTests.swift */; };
+		A4F8E73042D04B2FB06FE0E2 /* SettingsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29CA645B0F555CA35197100A /* SettingsManager.swift */; };
+		A604FBEB3245B8F8966EAE1B /* HotkeyController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2504E01ACF6D4C05BEFB7E56 /* HotkeyController.swift */; };
+		A65CE55F6174A1E6792A79DB /* SettingsWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89F1266C1564F05F55C46C2F /* SettingsWindowController.swift */; };
+		A9738B062C0401864DD7AF56 /* MenuBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3058E55DF0F6C1F3860509A9 /* MenuBarController.swift */; };
+		B8655A379B2678997F1BDFDA /* PasteActionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DEACCF59F534489A8AF9981 /* PasteActionController.swift */; };
+		BF7F559E4A124A3FB5FE6B3E /* KeyboardLayoutMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50D67FBB8FBE28D24788D1AD /* KeyboardLayoutMapper.swift */; };
+		C39EE48CC423AC16724E38F2 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1FB8474CB31ABBBA88C9750F /* Assets.xcassets */; };
+		CAC6C3536F8369CBEB9C09B7 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D578E696935D0839EB66DB5 /* AppDelegate.swift */; };
+		CC4FC596BB9FDFCE7CB15B82 /* OverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2744CC57453CAB087F1CAE7 /* OverlayView.swift */; };
+		D5E6C0CE85851CFDAF6D7B81 /* ClipboardCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E8C84D71E2AF21A3462D463 /* ClipboardCardView.swift */; };
+		E9CAEF043EC773A3A80A1384 /* TahoePasteApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = F93326CCA5CBC08FB32409A0 /* TahoePasteApp.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		70A7C1582906A9F9B00175DB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 4E49C189E9FB5B02DFCC2C96 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 3AFAA53154A51624BCB33650;
+			remoteInfo = TahoePaste;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		041C9B33F3C21AD701210B82 /* TahoePasteTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TahoePasteTests.swift; sourceTree = "<group>"; };
+		1382C1DD949D9F1F524296D9 /* OverlayWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayWindowController.swift; sourceTree = "<group>"; };
+		1FB8474CB31ABBBA88C9750F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		220F91F15940320133DB40D4 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
+		2504E01ACF6D4C05BEFB7E56 /* HotkeyController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotkeyController.swift; sourceTree = "<group>"; };
+		29CA645B0F555CA35197100A /* SettingsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsManager.swift; sourceTree = "<group>"; };
+		2BA59F6AA2066FDE5B5C6A67 /* AccessibilityPermissionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilityPermissionManager.swift; sourceTree = "<group>"; };
+		2E8C84D71E2AF21A3462D463 /* ClipboardCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardCardView.swift; sourceTree = "<group>"; };
+		2EB4D063158AE83A1A8C0D82 /* AppCommands.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppCommands.swift; sourceTree = "<group>"; };
+		3058E55DF0F6C1F3860509A9 /* MenuBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarController.swift; sourceTree = "<group>"; };
+		33BB9C09D335654A787CFFEC /* TahoePaste.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TahoePaste.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		39983B8844F4D211AF47CB1C /* AppLanguage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLanguage.swift; sourceTree = "<group>"; };
+		3D578E696935D0839EB66DB5 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		488BC6119C96BCB6AB725334 /* ClipboardHistoryViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardHistoryViewModel.swift; sourceTree = "<group>"; };
+		50D67FBB8FBE28D24788D1AD /* KeyboardLayoutMapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardLayoutMapper.swift; sourceTree = "<group>"; };
+		5160FDD333ECCA4CB1CDF1C9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		611E0B2BE3E96B1F5D903C36 /* StorageManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorageManager.swift; sourceTree = "<group>"; };
+		6C6AA69B17D59CDA6FBB5447 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Localizable.strings"; sourceTree = "<group>"; };
+		7353AB61982940BD95803E08 /* ClipboardItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardItem.swift; sourceTree = "<group>"; };
+		74A22A765640C176CCCF227C /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		765FB33F69CE0CD06A4562B0 /* ClipboardSearchEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardSearchEngine.swift; sourceTree = "<group>"; };
+		89F1266C1564F05F55C46C2F /* SettingsWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsWindowController.swift; sourceTree = "<group>"; };
+		8DEACCF59F534489A8AF9981 /* PasteActionController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PasteActionController.swift; sourceTree = "<group>"; };
+		967FBD4A015513E6A100F9F9 /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/Localizable.strings; sourceTree = "<group>"; };
+		BAA387C20982BAFA7374FE63 /* MenuBarIconView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarIconView.swift; sourceTree = "<group>"; };
+		D2744CC57453CAB087F1CAE7 /* OverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayView.swift; sourceTree = "<group>"; };
+		DC6BB5A91566E9E5CAE5F428 /* MenuBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarView.swift; sourceTree = "<group>"; };
+		E32140C0FC6744E00AA1D46F /* ClipboardContentClassifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardContentClassifier.swift; sourceTree = "<group>"; };
+		EBA78438809312D245CF9E0E /* ClipboardManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardManager.swift; sourceTree = "<group>"; };
+		F48A6BA3A4C456062608D3AF /* TahoePasteTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TahoePasteTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		F93326CCA5CBC08FB32409A0 /* TahoePasteApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TahoePasteApp.swift; sourceTree = "<group>"; };
+		FD9D0066E68E9AFB605ACFA2 /* L10n.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = L10n.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		47D2BC87F9B6D1FC61BF4405 /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				488BC6119C96BCB6AB725334 /* ClipboardHistoryViewModel.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		4F6C9C265860EBD2A690A165 /* TahoePaste */ = {
+			isa = PBXGroup;
+			children = (
+				2EB4D063158AE83A1A8C0D82 /* AppCommands.swift */,
+				3D578E696935D0839EB66DB5 /* AppDelegate.swift */,
+				1FB8474CB31ABBBA88C9750F /* Assets.xcassets */,
+				5160FDD333ECCA4CB1CDF1C9 /* Info.plist */,
+				F93326CCA5CBC08FB32409A0 /* TahoePasteApp.swift */,
+				F7B0169F14B07A8A0E1A18D3 /* Localizable.strings */,
+				62CCBFFEE3985D724CDCDC6E /* Localization */,
+				651289901A62897ACC5D2A90 /* Managers */,
+				ED3865AE3F8C3B96B476AAFB /* Models */,
+				5915981730CFF37AF8E53F42 /* Search */,
+				47D2BC87F9B6D1FC61BF4405 /* ViewModels */,
+				FF6B81D4016B524C3F644D0D /* Views */,
+				9BE876821322D363DA784AE5 /* Windows */,
+			);
+			path = TahoePaste;
+			sourceTree = "<group>";
+		};
+		526AABD4A40C5DE88B476ABB /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				33BB9C09D335654A787CFFEC /* TahoePaste.app */,
+				F48A6BA3A4C456062608D3AF /* TahoePasteTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		5915981730CFF37AF8E53F42 /* Search */ = {
+			isa = PBXGroup;
+			children = (
+				765FB33F69CE0CD06A4562B0 /* ClipboardSearchEngine.swift */,
+				50D67FBB8FBE28D24788D1AD /* KeyboardLayoutMapper.swift */,
+			);
+			path = Search;
+			sourceTree = "<group>";
+		};
+		62CCBFFEE3985D724CDCDC6E /* Localization */ = {
+			isa = PBXGroup;
+			children = (
+				39983B8844F4D211AF47CB1C /* AppLanguage.swift */,
+				FD9D0066E68E9AFB605ACFA2 /* L10n.swift */,
+			);
+			path = Localization;
+			sourceTree = "<group>";
+		};
+		651289901A62897ACC5D2A90 /* Managers */ = {
+			isa = PBXGroup;
+			children = (
+				2BA59F6AA2066FDE5B5C6A67 /* AccessibilityPermissionManager.swift */,
+				EBA78438809312D245CF9E0E /* ClipboardManager.swift */,
+				2504E01ACF6D4C05BEFB7E56 /* HotkeyController.swift */,
+				3058E55DF0F6C1F3860509A9 /* MenuBarController.swift */,
+				8DEACCF59F534489A8AF9981 /* PasteActionController.swift */,
+				29CA645B0F555CA35197100A /* SettingsManager.swift */,
+				611E0B2BE3E96B1F5D903C36 /* StorageManager.swift */,
+			);
+			path = Managers;
+			sourceTree = "<group>";
+		};
+		918105571EB0FAAE5F907140 = {
+			isa = PBXGroup;
+			children = (
+				4F6C9C265860EBD2A690A165 /* TahoePaste */,
+				AC7210FE9E1E6FBFCEF52BF2 /* TahoePasteTests */,
+				526AABD4A40C5DE88B476ABB /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		9BE876821322D363DA784AE5 /* Windows */ = {
+			isa = PBXGroup;
+			children = (
+				1382C1DD949D9F1F524296D9 /* OverlayWindowController.swift */,
+				89F1266C1564F05F55C46C2F /* SettingsWindowController.swift */,
+			);
+			path = Windows;
+			sourceTree = "<group>";
+		};
+		AC7210FE9E1E6FBFCEF52BF2 /* TahoePasteTests */ = {
+			isa = PBXGroup;
+			children = (
+				041C9B33F3C21AD701210B82 /* TahoePasteTests.swift */,
+			);
+			path = TahoePasteTests;
+			sourceTree = "<group>";
+		};
+		ED3865AE3F8C3B96B476AAFB /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				E32140C0FC6744E00AA1D46F /* ClipboardContentClassifier.swift */,
+				7353AB61982940BD95803E08 /* ClipboardItem.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		FF6B81D4016B524C3F644D0D /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				2E8C84D71E2AF21A3462D463 /* ClipboardCardView.swift */,
+				BAA387C20982BAFA7374FE63 /* MenuBarIconView.swift */,
+				DC6BB5A91566E9E5CAE5F428 /* MenuBarView.swift */,
+				D2744CC57453CAB087F1CAE7 /* OverlayView.swift */,
+				74A22A765640C176CCCF227C /* SettingsView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		3AFAA53154A51624BCB33650 /* TahoePaste */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CBA2E62CA8B320A342B8FAB3 /* Build configuration list for PBXNativeTarget "TahoePaste" */;
+			buildPhases = (
+				770A300DC80F07AF03351FDD /* Sources */,
+				C186890164CAA8D9FBDA4B10 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = TahoePaste;
+			packageProductDependencies = (
+			);
+			productName = TahoePaste;
+			productReference = 33BB9C09D335654A787CFFEC /* TahoePaste.app */;
+			productType = "com.apple.product-type.application";
+		};
+		D04277EA39F64B2C377FC753 /* TahoePasteTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 476AB6752D4D09ADAA0D3167 /* Build configuration list for PBXNativeTarget "TahoePasteTests" */;
+			buildPhases = (
+				CE374AFAB2E8F1BB3AA5993B /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				5061558257BF952FFCCF01C2 /* PBXTargetDependency */,
+			);
+			name = TahoePasteTests;
+			packageProductDependencies = (
+			);
+			productName = TahoePasteTests;
+			productReference = F48A6BA3A4C456062608D3AF /* TahoePasteTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		4E49C189E9FB5B02DFCC2C96 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					3AFAA53154A51624BCB33650 = {
+						ProvisioningStyle = Automatic;
+					};
+					D04277EA39F64B2C377FC753 = {
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 236BE61CAB1AC53469664D73 /* Build configuration list for PBXProject "TahoePaste" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+				ru,
+				"zh-Hans",
+			);
+			mainGroup = 918105571EB0FAAE5F907140;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 526AABD4A40C5DE88B476ABB /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				3AFAA53154A51624BCB33650 /* TahoePaste */,
+				D04277EA39F64B2C377FC753 /* TahoePasteTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		C186890164CAA8D9FBDA4B10 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C39EE48CC423AC16724E38F2 /* Assets.xcassets in Resources */,
+				63FD50A4444ED901D4BBA8A2 /* Localizable.strings in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		770A300DC80F07AF03351FDD /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				00878BB02AD692CA0453CC29 /* AccessibilityPermissionManager.swift in Sources */,
+				18F4C57F07569ACEF7CBEABC /* AppCommands.swift in Sources */,
+				CAC6C3536F8369CBEB9C09B7 /* AppDelegate.swift in Sources */,
+				66AEBD29AC2766AC6CC7B8D0 /* AppLanguage.swift in Sources */,
+				D5E6C0CE85851CFDAF6D7B81 /* ClipboardCardView.swift in Sources */,
+				02E7E92A9BAD4CCE7B117187 /* ClipboardContentClassifier.swift in Sources */,
+				4B1FE31615E506DB7D7C6D7A /* ClipboardHistoryViewModel.swift in Sources */,
+				44CDB3382B0FB64DA066FBAD /* ClipboardItem.swift in Sources */,
+				333DDC543FCB4B9644298BFD /* ClipboardManager.swift in Sources */,
+				439F75D97902482CC60A5C50 /* ClipboardSearchEngine.swift in Sources */,
+				A604FBEB3245B8F8966EAE1B /* HotkeyController.swift in Sources */,
+				BF7F559E4A124A3FB5FE6B3E /* KeyboardLayoutMapper.swift in Sources */,
+				18E8CF6BF2E4E9257993976A /* L10n.swift in Sources */,
+				A9738B062C0401864DD7AF56 /* MenuBarController.swift in Sources */,
+				739F122E7AB01A9EB5656B83 /* MenuBarIconView.swift in Sources */,
+				9425FE18D81F949FC6ACC766 /* MenuBarView.swift in Sources */,
+				CC4FC596BB9FDFCE7CB15B82 /* OverlayView.swift in Sources */,
+				02F46F9E08BD5EEC030CC60D /* OverlayWindowController.swift in Sources */,
+				B8655A379B2678997F1BDFDA /* PasteActionController.swift in Sources */,
+				A4F8E73042D04B2FB06FE0E2 /* SettingsManager.swift in Sources */,
+				08F585662EA822F037F536F3 /* SettingsView.swift in Sources */,
+				A65CE55F6174A1E6792A79DB /* SettingsWindowController.swift in Sources */,
+				70913E74AFE69246AC912210 /* StorageManager.swift in Sources */,
+				E9CAEF043EC773A3A80A1384 /* TahoePasteApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CE374AFAB2E8F1BB3AA5993B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				947D68A485DA3F7F895256F0 /* TahoePasteTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		5061558257BF952FFCCF01C2 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 3AFAA53154A51624BCB33650 /* TahoePaste */;
+			targetProxy = 70A7C1582906A9F9B00175DB /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		F7B0169F14B07A8A0E1A18D3 /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				220F91F15940320133DB40D4 /* en */,
+				967FBD4A015513E6A100F9F9 /* ru */,
+				6C6AA69B17D59CDA6FBB5447 /* zh-Hans */,
+			);
+			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		12EF6C5BEBF6FAE232018272 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.mk.TahoePasteTests;
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TahoePaste.app/Contents/MacOS/TahoePaste";
+			};
+			name = Release;
+		};
+		2698A2E887F46E0A7C93CAD4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.mk.TahoePasteTests;
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TahoePaste.app/Contents/MacOS/TahoePaste";
+			};
+			name = Debug;
+		};
+		4CB376EE4160907AFAB88091 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_APP_SANDBOX = NO;
+				ENABLE_HARDENED_RUNTIME = NO;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = TahoePaste/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.mk.TahoePaste;
+				PRODUCT_NAME = TahoePaste;
+				SDKROOT = macosx;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+			};
+			name = Release;
+		};
+		4DA2189D95FE52809EB77C88 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_APP_SANDBOX = NO;
+				ENABLE_HARDENED_RUNTIME = NO;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = TahoePaste/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.mk.TahoePaste;
+				PRODUCT_NAME = TahoePaste;
+				SDKROOT = macosx;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+			};
+			name = Debug;
+		};
+		A408D6379219216AFC58F173 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		D7CEF3397FCE90B238957B0E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		236BE61CAB1AC53469664D73 /* Build configuration list for PBXProject "TahoePaste" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A408D6379219216AFC58F173 /* Debug */,
+				D7CEF3397FCE90B238957B0E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		476AB6752D4D09ADAA0D3167 /* Build configuration list for PBXNativeTarget "TahoePasteTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2698A2E887F46E0A7C93CAD4 /* Debug */,
+				12EF6C5BEBF6FAE232018272 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		CBA2E62CA8B320A342B8FAB3 /* Build configuration list for PBXNativeTarget "TahoePaste" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4DA2189D95FE52809EB77C88 /* Debug */,
+				4CB376EE4160907AFAB88091 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 4E49C189E9FB5B02DFCC2C96 /* Project object */;
+}
