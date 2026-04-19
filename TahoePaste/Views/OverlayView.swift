@@ -6,6 +6,10 @@ struct OverlayView: View {
     private let searchBubbleTopPadding: CGFloat = 8
     private let searchBubbleBottomPadding: CGFloat = 6
 
+    private var themePalette: SettingsManager.ThemePalette {
+        settingsManager.themePalette
+    }
+
     var body: some View {
         ScrollViewReader { proxy in
             ZStack {
@@ -13,8 +17,8 @@ struct OverlayView: View {
                     .fill(
                         LinearGradient(
                             colors: [
-                                Color(red: 0.08, green: 0.10, blue: 0.13).opacity(0.94),
-                                Color(red: 0.13, green: 0.15, blue: 0.19).opacity(0.98)
+                                themePalette.overlayGradientTop,
+                                themePalette.overlayGradientBottom
                             ],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
@@ -22,7 +26,7 @@ struct OverlayView: View {
                     )
                     .overlay(alignment: .top) {
                         Rectangle()
-                            .fill(Color.white.opacity(0.05))
+                            .fill(themePalette.overlayEdgeHighlight)
                             .frame(height: 1)
                     }
 
@@ -89,6 +93,7 @@ struct OverlayView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .environment(\.locale, settingsManager.appLanguage.locale)
+        .preferredColorScheme(settingsManager.preferredColorScheme)
     }
 
     private var overlayShape: UnevenRoundedRectangle {
@@ -107,11 +112,11 @@ struct OverlayView: View {
         VStack(alignment: .leading, spacing: 6) {
             Text(L10n.tr("overlay.empty_title"))
                 .font(.system(size: 18, weight: .semibold, design: .rounded))
-                .foregroundStyle(.white)
+                .foregroundStyle(themePalette.overlayPrimaryText)
 
             Text(L10n.tr("overlay.empty_subtitle"))
                 .font(.system(size: 13, weight: .medium, design: .rounded))
-                .foregroundStyle(Color.white.opacity(0.68))
+                .foregroundStyle(themePalette.overlaySecondaryText.opacity(0.92))
                 .frame(maxWidth: 360, alignment: .leading)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
@@ -121,11 +126,11 @@ struct OverlayView: View {
         VStack(alignment: .leading, spacing: 6) {
             Text(L10n.tr("overlay.no_matches_title"))
                 .font(.system(size: 18, weight: .semibold, design: .rounded))
-                .foregroundStyle(.white)
+                .foregroundStyle(themePalette.overlayPrimaryText)
 
             Text(L10n.tr("overlay.no_matches_subtitle"))
                 .font(.system(size: 13, weight: .medium, design: .rounded))
-                .foregroundStyle(Color.white.opacity(0.68))
+                .foregroundStyle(themePalette.overlaySecondaryText.opacity(0.92))
                 .lineLimit(2)
                 .frame(maxWidth: 420, alignment: .leading)
         }
@@ -136,7 +141,9 @@ struct OverlayView: View {
         HStack(spacing: 10) {
             Text(viewModel.searchDisplayText)
                 .font(.system(size: 13, weight: .semibold, design: .rounded))
-                .foregroundStyle(.white.opacity(viewModel.isSearching ? 0.92 : 0.64))
+                .foregroundStyle(
+                    themePalette.overlayPrimaryText.opacity(viewModel.isSearching ? 0.92 : 0.64)
+                )
                 .lineLimit(1)
                 .truncationMode(.middle)
                 .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
@@ -146,7 +153,7 @@ struct OverlayView: View {
             }) {
                 Image(systemName: "xmark")
                     .font(.system(size: 10, weight: .semibold))
-                    .foregroundStyle(Color.white.opacity(0.52))
+                    .foregroundStyle(themePalette.overlaySecondaryText.opacity(0.74))
                     .frame(width: 14, height: 14)
                     .contentShape(Rectangle())
             }
@@ -157,11 +164,11 @@ struct OverlayView: View {
         .padding(.vertical, 7)
         .background(
             RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .fill(Color(red: 0.16, green: 0.18, blue: 0.22).opacity(0.98))
+                .fill(themePalette.overlayBubbleFill)
         )
         .overlay(
             RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+                .strokeBorder(themePalette.overlayBubbleBorder, lineWidth: 1)
         )
         .shadow(color: .black.opacity(0.18), radius: 10, y: 4)
         .padding(.horizontal, 16)
@@ -190,7 +197,7 @@ struct OverlayView: View {
         Button(action: action) {
             Image(systemName: systemName)
                 .font(.system(size: 10, weight: .semibold))
-                .foregroundStyle(Color(red: 0.72, green: 0.75, blue: 0.80).opacity(0.70))
+                .foregroundStyle(themePalette.overlayToolbarIcon.opacity(0.78))
                 .frame(width: 18, height: 18)
                 .padding(4)
                 .contentShape(Rectangle())

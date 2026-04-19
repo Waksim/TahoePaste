@@ -5,6 +5,12 @@ enum ClipboardTag: String, Codable, Hashable, CaseIterable, Identifiable {
     case image
     case link
     case code
+    case email
+    case phone
+    case password
+    case token
+    case dateTime
+    case address
     case file
     case video
     case audio
@@ -29,6 +35,18 @@ enum ClipboardTag: String, Codable, Hashable, CaseIterable, Identifiable {
             return "card.link"
         case .code:
             return "card.code"
+        case .email:
+            return "card.email"
+        case .phone:
+            return "card.phone"
+        case .password:
+            return "card.password"
+        case .token:
+            return "card.token"
+        case .dateTime:
+            return "card.date_time"
+        case .address:
+            return "card.address"
         case .file:
             return "card.file"
         case .video:
@@ -60,6 +78,18 @@ enum ClipboardTag: String, Codable, Hashable, CaseIterable, Identifiable {
             return "link"
         case .code:
             return "chevron.left.forwardslash.chevron.right"
+        case .email:
+            return "envelope"
+        case .phone:
+            return "phone"
+        case .password:
+            return "lock"
+        case .token:
+            return "key"
+        case .dateTime:
+            return "calendar"
+        case .address:
+            return "mappin.and.ellipse"
         case .file:
             return "doc"
         case .video:
@@ -91,6 +121,18 @@ enum ClipboardTag: String, Codable, Hashable, CaseIterable, Identifiable {
             return ["link", "links", "url", "urls", "ссылка", "ссылки", "链接", "网址"]
         case .code:
             return ["code", "codes", "snippet", "snippets", "код", "коды", "代码", "代码片段"]
+        case .email:
+            return ["email", "emails", "e-mail", "mail", "почта", "емейл", "邮箱", "电子邮件"]
+        case .phone:
+            return ["phone", "phones", "telephone", "number", "numbers", "телефон", "номер", "号码", "电话"]
+        case .password:
+            return ["password", "passwords", "passcode", "pwd", "пароль", "пароли", "密码", "口令"]
+        case .token:
+            return ["token", "tokens", "secret", "api key", "apikey", "credential", "токен", "секрет", "ключ", "令牌", "密钥"]
+        case .dateTime:
+            return ["date", "time", "schedule", "meeting", "дата", "время", "расписание", "日期", "时间"]
+        case .address:
+            return ["address", "location", "street", "адрес", "локация", "地址", "地点"]
         case .file:
             return ["file", "files", "файл", "файлы", "文件", "文件"]
         case .video:
@@ -360,6 +402,12 @@ struct ClipboardItem: Identifiable, Codable, Hashable {
 
     var tags: [ClipboardTag] {
         var resolvedTags = [kind.primaryTag]
+
+        if kind != .file, let text {
+            for tag in ClipboardContentClassifier.detectedTags(for: text) where resolvedTags.contains(tag) == false {
+                resolvedTags.append(tag)
+            }
+        }
 
         if let fileReferences {
             for fileReference in fileReferences {
