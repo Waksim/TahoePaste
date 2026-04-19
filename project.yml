@@ -1,0 +1,48 @@
+name: TahoePaste
+options:
+  bundleIdPrefix: com.mk
+  deploymentTarget:
+    macOS: "26.0"
+settings:
+  base:
+    SWIFT_VERSION: 6.0
+    MACOSX_DEPLOYMENT_TARGET: "26.0"
+    CURRENT_PROJECT_VERSION: 1
+    MARKETING_VERSION: 1.0
+targets:
+  TahoePaste:
+    type: application
+    platform: macOS
+    deploymentTarget: "26.0"
+    sources:
+      - path: TahoePaste
+      - path: TahoePaste/Search
+    info:
+      path: TahoePaste/Info.plist
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.mk.TahoePaste
+        PRODUCT_NAME: TahoePaste
+        GENERATE_INFOPLIST_FILE: NO
+        CODE_SIGN_STYLE: Automatic
+        ENABLE_HARDENED_RUNTIME: NO
+        ENABLE_APP_SANDBOX: NO
+        SWIFT_EMIT_LOC_STRINGS: NO
+    scheme:
+      testTargets:
+        - TahoePasteTests
+  TahoePasteTests:
+    type: bundle.unit-test
+    platform: macOS
+    deploymentTarget: "26.0"
+    sources:
+      - path: TahoePasteTests
+    dependencies:
+      - target: TahoePaste
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.mk.TahoePasteTests
+        GENERATE_INFOPLIST_FILE: YES
+        CODE_SIGN_STYLE: Automatic
+        BUNDLE_LOADER: "$(TEST_HOST)"
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/TahoePaste.app/Contents/MacOS/TahoePaste"

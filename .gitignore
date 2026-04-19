@@ -1,0 +1,21 @@
+.DS_Store
+
+# Xcode user data
+xcuserdata/
+*.xcuserstate
+*.xcscmblueprint
+
+# Build products
+.build/
+DerivedData/
+build/
+dist/
+.tmp/
+packaging/dmg/background.png
+
+# SwiftPM
+.swiftpm/
+
+# macOS artifacts
+*.swp
+*.swo
