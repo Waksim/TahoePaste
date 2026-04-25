@@ -6,6 +6,8 @@ using System.Windows.Input;
 using TahoePaste.Windows.Localization;
 using TahoePaste.Windows.Services;
 using TahoePaste.Windows.ViewModels;
+using TahoeTheme = TahoePaste.Windows.Services.Theme;
+using TahoeThemeMode = TahoePaste.Windows.Services.ThemeMode;
 
 namespace TahoePaste.Windows.Views;
 
@@ -42,7 +44,7 @@ public partial class SettingsWindow : Window
         }
 
         LanguageCombo.ItemsSource = Enum.GetValues<AppLanguage>().Select(language => new Option<AppLanguage>(language, language.DisplayName())).ToArray();
-        ThemeModeCombo.ItemsSource = Enum.GetValues<ThemeMode>().Select(mode => new Option<ThemeMode>(mode, ThemeModeTitle(mode))).ToArray();
+        ThemeModeCombo.ItemsSource = Enum.GetValues<TahoeThemeMode>().Select(mode => new Option<TahoeThemeMode>(mode, ThemeModeTitle(mode))).ToArray();
         CardSizeCombo.ItemsSource = Enum.GetValues<CardSizePreset>().Select(preset => new Option<CardSizePreset>(preset, CardSizeTitle(preset))).ToArray();
     }
 
@@ -102,7 +104,7 @@ public partial class SettingsWindow : Window
         RevealStorageButton.Content = L10n.Tr("settings.reveal_application_support");
         DeleteAllButton.Content = L10n.Tr("settings.delete_all_saved_data");
 
-        ThemeModeCombo.ItemsSource = Enum.GetValues<ThemeMode>().Select(mode => new Option<ThemeMode>(mode, ThemeModeTitle(mode))).ToArray();
+        ThemeModeCombo.ItemsSource = Enum.GetValues<TahoeThemeMode>().Select(mode => new Option<TahoeThemeMode>(mode, ThemeModeTitle(mode))).ToArray();
         CardSizeCombo.ItemsSource = Enum.GetValues<CardSizePreset>().Select(preset => new Option<CardSizePreset>(preset, CardSizeTitle(preset))).ToArray();
     }
 
@@ -128,11 +130,11 @@ public partial class SettingsWindow : Window
         ReactivateCheck.IsChecked = _settings.ReactivatePreviousAppBeforePaste;
         PasteDelaySlider.Value = _settings.PasteDelay;
         PasteDelayValue.Text = L10n.Tr("unit.seconds", _settings.PasteDelay);
-        ActiveThemeValue.Text = _settings.ActiveTheme == Theme.Night ? L10n.Tr("settings.theme_mode.night") : L10n.Tr("settings.theme_mode.day");
+        ActiveThemeValue.Text = _settings.ActiveTheme == TahoeTheme.Night ? L10n.Tr("settings.theme_mode.night") : L10n.Tr("settings.theme_mode.day");
         DayThemeStartText.Text = AppSettings.TimeText(_settings.DayThemeStartMinutes);
         NightThemeStartText.Text = AppSettings.TimeText(_settings.NightThemeStartMinutes);
-        DayThemeStartText.IsEnabled = _settings.ThemeMode == ThemeMode.Scheduled;
-        NightThemeStartText.IsEnabled = _settings.ThemeMode == ThemeMode.Scheduled;
+        DayThemeStartText.IsEnabled = _settings.ThemeMode == TahoeThemeMode.Scheduled;
+        NightThemeStartText.IsEnabled = _settings.ThemeMode == TahoeThemeMode.Scheduled;
         OverlayHeightSlider.Value = _settings.OverlayHeight;
         OverlayHeightValue.Text = L10n.Tr("unit.points", (int)Math.Round(_settings.OverlayHeight));
         ShowTimestampsCheck.IsChecked = _settings.ShowTimestampsOnCards;
@@ -255,7 +257,7 @@ public partial class SettingsWindow : Window
 
     private void OnThemeModeChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (_isRefreshing == false && ThemeModeCombo.SelectedItem is Option<ThemeMode> option)
+        if (_isRefreshing == false && ThemeModeCombo.SelectedItem is Option<TahoeThemeMode> option)
         {
             _settings.ThemeMode = option.Value;
         }
@@ -383,12 +385,12 @@ public partial class SettingsWindow : Window
         }
     }
 
-    private static string ThemeModeTitle(ThemeMode mode) => mode switch
+    private static string ThemeModeTitle(TahoeThemeMode mode) => mode switch
     {
-        ThemeMode.System => L10n.Tr("settings.theme_mode.system"),
-        ThemeMode.Day => L10n.Tr("settings.theme_mode.day"),
-        ThemeMode.Night => L10n.Tr("settings.theme_mode.night"),
-        ThemeMode.Scheduled => L10n.Tr("settings.theme_mode.schedule"),
+        TahoeThemeMode.System => L10n.Tr("settings.theme_mode.system"),
+        TahoeThemeMode.Day => L10n.Tr("settings.theme_mode.day"),
+        TahoeThemeMode.Night => L10n.Tr("settings.theme_mode.night"),
+        TahoeThemeMode.Scheduled => L10n.Tr("settings.theme_mode.schedule"),
         _ => mode.ToString()
     };
 
