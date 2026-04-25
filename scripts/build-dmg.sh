@@ -22,7 +22,9 @@ if ! command -v create-dmg >/dev/null 2>&1; then
   exit 1
 fi
 
-"$PROJECT_DIR/scripts/ensure-local-signing-identity.sh"
+if [[ "$SIGNING_IDENTITY" != "-" ]]; then
+  IDENTITY_NAME="$SIGNING_IDENTITY" "$PROJECT_DIR/scripts/ensure-local-signing-identity.sh"
+fi
 "$PROJECT_DIR/scripts/generate-dmg-background.sh"
 
 mkdir -p "$DIST_DIR"
@@ -58,20 +60,24 @@ codesign --verify --deep --strict "$STAGED_APP_PATH"
 rm -f "$DMG_PATH"
 
 echo "Creating DMG..."
-create-dmg \
-  --volname "$APP_DISPLAY_NAME" \
-  --volicon "$STAGED_APP_PATH/Contents/Resources/AppIcon.icns" \
-  --background "$BACKGROUND_PATH" \
-  --window-pos 120 120 \
-  --window-size 700 440 \
-  --icon-size 128 \
-  --text-size 14 \
-  --icon "$APP_NAME" 180 245 \
-  --hide-extension "$APP_NAME" \
-  --app-drop-link 520 245 \
-  --codesign "$SIGNING_IDENTITY" \
-  "$DMG_PATH" \
-  "$STAGING_DIR"
+CREATE_DMG_ARGS=(
+  --volname "$APP_DISPLAY_NAME"
+  --volicon "$STAGED_APP_PATH/Contents/Resources/AppIcon.icns"
+  --background "$BACKGROUND_PATH"
+  --window-pos 120 120
+  --window-size 700 440
+  --icon-size 128
+  --text-size 14
+  --icon "$APP_NAME" 180 245
+  --hide-extension "$APP_NAME"
+  --app-drop-link 520 245
+)
+
+if [[ "$SIGNING_IDENTITY" != "-" ]]; then
+  CREATE_DMG_ARGS+=(--codesign "$SIGNING_IDENTITY")
+fi
+
+create-dmg "${CREATE_DMG_ARGS[@]}" "$DMG_PATH" "$STAGING_DIR"
 
 echo
 echo "TahoePaste DMG created at:"

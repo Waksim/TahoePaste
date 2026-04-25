@@ -8,7 +8,7 @@
     <Platforms>x64</Platforms>
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
-    <ImplicitUsings>enable</ImplicitUsings>
+    <ImplicitUsings>disable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <LangVersion>latestMajor</LangVersion>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
