@@ -1,0 +1,134 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: "Existing tag to publish, for example v1.0.0"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+env:
+  DOTNET_VERSION: "10.0.x"
+  WINDOWS_PROJECT: windows/src/TahoePaste.Windows/TahoePaste.Windows.csproj
+  WINDOWS_PUBLISH_DIR: windows/src/TahoePaste.Windows/bin/Release/net10.0-windows10.0.26100.0/win-x64/publish
+
+jobs:
+  macos:
+    name: Build macOS DMG
+    runs-on: macos-26
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag_name || github.ref }}
+
+      - name: Install packaging tools
+        run: brew install create-dmg imagemagick
+
+      - name: Build DMG
+        run: ./scripts/build-dmg.sh
+
+      - name: Rename DMG
+        run: |
+          mkdir -p dist
+          mv dist/TahoePaste.dmg dist/TahoePaste-macOS.dmg
+
+      - name: Upload macOS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos
+          path: dist/TahoePaste-macOS.dmg
+          if-no-files-found: error
+
+  windows:
+    name: Build Windows x64
+    runs-on: windows-2025
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag_name || github.ref }}
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore
+        run: dotnet restore $env:WINDOWS_PROJECT -r win-x64
+
+      - name: Publish
+        run: dotnet publish $env:WINDOWS_PROJECT -c Release -r win-x64 --self-contained true --no-restore
+
+      - name: Package portable zip
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path windows/dist | Out-Null
+          Compress-Archive -Path "$env:WINDOWS_PUBLISH_DIR\*" -DestinationPath windows/dist/TahoePaste-Windows-x64.zip -Force
+
+      - name: Install Inno Setup
+        shell: pwsh
+        run: choco install innosetup -y --no-progress
+
+      - name: Build installer
+        shell: pwsh
+        run: |
+          $version = "${{ github.ref_name }}".TrimStart("v")
+          if ("${{ github.event_name }}" -eq "workflow_dispatch") {
+            $version = "${{ inputs.tag_name }}".TrimStart("v")
+          }
+          $sourceDir = Join-Path $env:GITHUB_WORKSPACE $env:WINDOWS_PUBLISH_DIR
+          $outputDir = Join-Path $env:GITHUB_WORKSPACE "windows\dist"
+          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" `
+            /DAppVersion="$version" `
+            /DSourceDir="$sourceDir" `
+            /DOutputDir="$outputDir" `
+            "$env:GITHUB_WORKSPACE\windows\installer\TahoePaste.iss"
+
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows
+          path: |
+            windows/dist/TahoePaste-Windows-x64.zip
+            windows/dist/TahoePaste-Windows-x64-Setup.exe
+          if-no-files-found: error
+
+  release:
+    name: Publish GitHub Release
+    runs-on: ubuntu-24.04
+    needs:
+      - macos
+      - windows
+    steps:
+      - name: Download release artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Generate checksums
+        run: |
+          cd dist
+          shasum -a 256 TahoePaste-* > SHA256SUMS.txt
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG_NAME: ${{ github.event_name == 'workflow_dispatch' && inputs.tag_name || github.ref_name }}
+        run: |
+          if gh release view "$TAG_NAME" >/dev/null 2>&1; then
+            gh release upload "$TAG_NAME" dist/* --clobber
+          else
+            gh release create "$TAG_NAME" dist/* \
+              --title "TahoePaste $TAG_NAME" \
+              --generate-notes \
+              --verify-tag
+          fi

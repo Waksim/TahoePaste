@@ -1,0 +1,116 @@
+<Window x:Class="TahoePaste.Windows.Views.OverlayWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="TahoePaste"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        Topmost="True"
+        Deactivated="OnDeactivated"
+        PreviewKeyDown="OnPreviewKeyDown"
+        TextInput="OnTextInput">
+    <Grid x:Name="RootGrid">
+        <Border x:Name="OverlayBorder"
+                BorderThickness="0,1,0,0"
+                SnapsToDevicePixels="True">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <Border x:Name="SearchBubble"
+                        Grid.Row="0"
+                        Height="32"
+                        MinWidth="280"
+                        MaxWidth="720"
+                        Margin="16,8,16,4"
+                        HorizontalAlignment="Center"
+                        CornerRadius="10"
+                        BorderThickness="1"
+                        Visibility="Collapsed">
+                    <DockPanel LastChildFill="True" Margin="14,0,10,0">
+                        <Button x:Name="ClearSearchButton"
+                                DockPanel.Dock="Right"
+                                Width="22"
+                                Height="22"
+                                Content="x"
+                                BorderThickness="0"
+                                Background="Transparent"
+                                Click="OnClearSearchClick" />
+                        <TextBlock x:Name="SearchText"
+                                   VerticalAlignment="Center"
+                                   FontFamily="{StaticResource TahoeFont}"
+                                   FontSize="13"
+                                   FontWeight="SemiBold"
+                                   TextTrimming="CharacterEllipsis" />
+                    </DockPanel>
+                </Border>
+
+                <Grid Grid.Row="1">
+                    <StackPanel x:Name="EmptyPanel"
+                                Margin="32,0,0,0"
+                                VerticalAlignment="Center"
+                                HorizontalAlignment="Left"
+                                Visibility="Collapsed">
+                        <TextBlock x:Name="EmptyTitle"
+                                   FontFamily="{StaticResource TahoeFont}"
+                                   FontSize="18"
+                                   FontWeight="SemiBold" />
+                        <TextBlock x:Name="EmptySubtitle"
+                                   FontFamily="{StaticResource TahoeFont}"
+                                   FontSize="13"
+                                   FontWeight="Medium"
+                                   Width="420"
+                                   TextWrapping="Wrap"
+                                   Margin="0,6,0,0" />
+                    </StackPanel>
+
+                    <ScrollViewer x:Name="CardsScroll"
+                                  HorizontalScrollBarVisibility="Hidden"
+                                  VerticalScrollBarVisibility="Disabled"
+                                  PanningMode="HorizontalOnly"
+                                  CanContentScroll="False">
+                        <StackPanel x:Name="CardsPanel"
+                                    Orientation="Horizontal"
+                                    VerticalAlignment="Center"
+                                    Margin="16,10,16,10" />
+                    </ScrollViewer>
+                </Grid>
+
+                <StackPanel Grid.RowSpan="2"
+                            Orientation="Horizontal"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Top"
+                            Margin="0,5,10,0">
+                    <Button x:Name="SettingsButton"
+                            Width="26"
+                            Height="26"
+                            Content="⚙"
+                            ToolTip="Settings"
+                            BorderThickness="0"
+                            Background="Transparent"
+                            Click="OnSettingsClick" />
+                    <Button x:Name="SearchButton"
+                            Width="26"
+                            Height="26"
+                            Content="⌕"
+                            ToolTip="Search"
+                            BorderThickness="0"
+                            Background="Transparent"
+                            Click="OnSearchClick" />
+                    <Button x:Name="ScrollStartButton"
+                            Width="26"
+                            Height="26"
+                            Content="←"
+                            ToolTip="Newest"
+                            BorderThickness="0"
+                            Background="Transparent"
+                            Click="OnScrollStartClick" />
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>
