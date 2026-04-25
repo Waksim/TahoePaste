@@ -2,7 +2,7 @@ namespace TahoePaste.Windows.Localization;
 
 public static class L10n
 {
-    private static AppLanguage _language = AppLanguage.BestMatch();
+    private static AppLanguage _language = AppLanguageExtensions.BestMatch();
 
     public static event EventHandler? LanguageChanged;
 

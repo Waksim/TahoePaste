@@ -28,7 +28,7 @@ public enum Theme
 
 public sealed class AppSettings : INotifyPropertyChanged
 {
-    private AppLanguage _appLanguage = AppLanguage.BestMatch();
+    private AppLanguage _appLanguage = AppLanguageExtensions.BestMatch();
     private bool _showTrayIcon = true;
     private bool _launchAtLogin;
     private bool _captureText = true;
