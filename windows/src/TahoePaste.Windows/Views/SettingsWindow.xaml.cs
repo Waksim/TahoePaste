@@ -20,10 +20,13 @@ public partial class SettingsWindow : Window
 
     public SettingsWindow(ClipboardHistoryViewModel viewModel, AppSettings settings, StartupService startupService)
     {
-        InitializeComponent();
         _viewModel = viewModel;
         _settings = settings;
         _startupService = startupService;
+
+        _isRefreshing = true;
+        InitializeComponent();
+        _isRefreshing = false;
 
         _viewModel.PropertyChanged += OnViewModelChanged;
         _settings.PropertyChanged += OnSettingsChanged;
@@ -51,9 +54,15 @@ public partial class SettingsWindow : Window
     private void RefreshAll()
     {
         _isRefreshing = true;
-        RefreshText();
-        RefreshValues();
-        _isRefreshing = false;
+        try
+        {
+            RefreshText();
+            RefreshValues();
+        }
+        finally
+        {
+            _isRefreshing = false;
+        }
     }
 
     private void RefreshText()

@@ -59,6 +59,7 @@ public sealed class AppHost : IDisposable
 
     public void Start()
     {
+        DiagnosticLog.Write("AppHost.Start");
         BindActions();
         RestoreHistory();
         RefreshTheme();
@@ -73,12 +74,14 @@ public sealed class AppHost : IDisposable
             _hotkeyManager.Register();
             _viewModel.SetHotkeyAvailability(L10n.Tr("status.hotkey_ready"));
         }
-        catch (Win32Exception)
+        catch (Win32Exception ex)
         {
+            DiagnosticLog.Write($"Hotkey registration Win32Exception native={ex.NativeErrorCode} message={ex.Message}");
             _viewModel.SetHotkeyAvailability(L10n.Tr("status.hotkey_already_used"));
         }
-        catch
+        catch (Exception ex)
         {
+            DiagnosticLog.Write($"Hotkey registration failed {ex}");
             _viewModel.SetHotkeyAvailability(L10n.Tr("status.hotkey_listen_failed"));
         }
 
@@ -199,9 +202,19 @@ public sealed class AppHost : IDisposable
 
     private void ShowOverlay()
     {
-        _pasteActionService.CaptureForegroundWindow();
-        _overlayWindow ??= new OverlayWindow(_viewModel, _settings);
-        _overlayWindow.ShowOverlay();
+        try
+        {
+            DiagnosticLog.Write($"AppHost.ShowOverlay start items={_viewModel.CurrentHistory.Count}");
+            _pasteActionService.CaptureForegroundWindow();
+            _overlayWindow ??= new OverlayWindow(_viewModel, _settings);
+            _overlayWindow.ShowOverlay();
+            DiagnosticLog.Write("AppHost.ShowOverlay complete");
+        }
+        catch (Exception ex)
+        {
+            DiagnosticLog.Write($"AppHost.ShowOverlay failed {ex}");
+            _viewModel.SetStatusMessage(L10n.Tr("status.hotkey_listen_failed"));
+        }
     }
 
     private void HideOverlay()

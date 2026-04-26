@@ -3,8 +3,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="TahoePaste"
         WindowStyle="None"
-        AllowsTransparency="True"
-        Background="Transparent"
+        AllowsTransparency="False"
+        Background="#141A22"
         ResizeMode="NoResize"
         ShowInTaskbar="False"
         Topmost="True"
@@ -72,7 +72,8 @@
                                   HorizontalScrollBarVisibility="Hidden"
                                   VerticalScrollBarVisibility="Disabled"
                                   PanningMode="HorizontalOnly"
-                                  CanContentScroll="False">
+                                  CanContentScroll="False"
+                                  PreviewMouseWheel="OnCardsMouseWheel">
                         <StackPanel x:Name="CardsPanel"
                                     Orientation="Horizontal"
                                     VerticalAlignment="Center"

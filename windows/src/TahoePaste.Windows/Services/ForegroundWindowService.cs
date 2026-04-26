@@ -31,7 +31,11 @@ public sealed class ForegroundWindowService
             return;
         }
 
-        NativeMethods.ShowWindow(_previousWindow, NativeMethods.SwRestore);
+        if (NativeMethods.IsIconic(_previousWindow))
+        {
+            NativeMethods.ShowWindow(_previousWindow, NativeMethods.SwRestore);
+        }
+
         NativeMethods.SetForegroundWindow(_previousWindow);
     }
 
