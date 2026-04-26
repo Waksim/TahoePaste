@@ -16,7 +16,7 @@
     <ApplicationIcon>Assets\tahoepaste.ico</ApplicationIcon>
     <AssemblyName>TahoePaste</AssemblyName>
     <RootNamespace>TahoePaste.Windows</RootNamespace>
-    <Version>0.3.0</Version>
+    <Version>0.3.1</Version>
     <Authors>TahoePaste</Authors>
     <Product>TahoePaste</Product>
     <Description>Local-only clipboard manager for Windows 11.</Description>

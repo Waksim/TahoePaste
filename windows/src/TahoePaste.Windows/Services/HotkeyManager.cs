@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Runtime.InteropServices;
 using System.Windows.Interop;
 using TahoePaste.Windows.Interop;
 
@@ -25,6 +26,7 @@ public sealed class HotkeyManager : IDisposable
 
         _source = new HwndSource(parameters);
         _source.AddHook(WndProc);
+        DiagnosticLog.Write($"Hotkey sink created handle=0x{_source.Handle.ToInt64():X}");
 
         _registered = NativeMethods.RegisterHotKey(
             _source.Handle,
@@ -34,10 +36,13 @@ public sealed class HotkeyManager : IDisposable
 
         if (_registered == false)
         {
+            DiagnosticLog.Write($"RegisterHotKey failed error={Marshal.GetLastWin32Error()}");
             var error = new Win32Exception();
             Unregister();
             throw error;
         }
+
+        DiagnosticLog.Write("RegisterHotKey succeeded shortcut=Ctrl+Shift+C");
     }
 
     public void Unregister()
@@ -60,6 +65,7 @@ public sealed class HotkeyManager : IDisposable
     {
         if (msg == NativeMethods.WmHotkey && wParam.ToInt32() == ToggleHotkeyId)
         {
+            DiagnosticLog.Write($"WM_HOTKEY received hwnd=0x{hwnd.ToInt64():X} id=0x{wParam.ToInt32():X}");
             TogglePressed?.Invoke(this, EventArgs.Empty);
             handled = true;
         }

@@ -13,6 +13,7 @@ namespace TahoePaste.Windows.Views;
 
 public partial class OverlayWindow : Window
 {
+    private const double CardKeyboardScrollStep = 260;
     private readonly ClipboardHistoryViewModel _viewModel;
     private readonly AppSettings _settings;
 
@@ -22,6 +23,7 @@ public partial class OverlayWindow : Window
         _viewModel = viewModel;
         _settings = settings;
         DataContext = viewModel;
+        DiagnosticLog.Write("OverlayWindow constructed");
 
         _viewModel.PropertyChanged += OnViewModelChanged;
         _settings.PropertyChanged += OnSettingsChanged;
@@ -30,6 +32,7 @@ public partial class OverlayWindow : Window
 
     public void ShowOverlay()
     {
+        DiagnosticLog.Write($"Overlay.ShowOverlay enter isVisible={IsVisible}");
         PositionOnActiveScreen();
         Render();
 
@@ -42,6 +45,7 @@ public partial class OverlayWindow : Window
         Focus();
         Keyboard.Focus(this);
         CardsScroll.ScrollToLeftEnd();
+        DiagnosticLog.Write($"Overlay.ShowOverlay exit isVisible={IsVisible} isActive={IsActive} left={Left:0} top={Top:0} width={ActualWidth:0}/{Width:0} height={ActualHeight:0}/{Height:0}");
     }
 
     public void HideOverlay()
@@ -56,11 +60,24 @@ public partial class OverlayWindow : Window
     {
         var screen = Forms.Screen.FromPoint(Forms.Cursor.Position);
         var area = screen.WorkingArea;
+        var dpiScale = CurrentDpiScale();
+        var left = area.Left / dpiScale.X;
+        var top = area.Top / dpiScale.Y;
+        var width = area.Width / dpiScale.X;
+        var height = area.Height / dpiScale.Y;
+
         Height = _settings.OverlayHeight;
-        Width = area.Width;
-        Left = area.Left;
-        Top = area.Bottom - Height;
+        Width = width;
+        Left = left;
+        Top = top + height - Height;
         OverlayBorder.CornerRadius = new CornerRadius(0, 0, _settings.CornerRadiusIntensity, _settings.CornerRadiusIntensity);
+        DiagnosticLog.Write($"Overlay positioned screen={screen.DeviceName} areaPx={area.Left},{area.Top},{area.Width},{area.Height} dpiScale={dpiScale.X:0.###},{dpiScale.Y:0.###} cursorPx={Forms.Cursor.Position.X},{Forms.Cursor.Position.Y} left={Left:0} top={Top:0} width={Width:0} height={Height:0}");
+    }
+
+    private static Point CurrentDpiScale()
+    {
+        using var graphics = System.Drawing.Graphics.FromHwnd(IntPtr.Zero);
+        return new Point(graphics.DpiX / 96.0, graphics.DpiY / 96.0);
     }
 
     private void Render()
@@ -90,6 +107,8 @@ public partial class OverlayWindow : Window
             card.TagRequested += tag => _viewModel.ToggleTagFilter(tag);
             CardsPanel.Children.Add(card);
         }
+
+        DiagnosticLog.Write($"Overlay.Render theme={_settings.ActiveTheme} visibleItems={visibleItems.Count} cards={CardsPanel.Children.Count} empty={EmptyPanel.Visibility} cardsScroll={CardsScroll.Visibility}");
     }
 
     private void ApplyTheme()
@@ -100,7 +119,8 @@ public partial class OverlayWindow : Window
             BrushColor(palette.OverlayGradientBottom),
             new Point(0, 0),
             new Point(1, 1));
-        OverlayBorder.Opacity = Math.Min(BrushOpacity(palette.OverlayGradientTop), BrushOpacity(palette.OverlayGradientBottom));
+        Background = new SolidColorBrush(BrushColor(palette.OverlayGradientTop));
+        OverlayBorder.Opacity = 1;
         OverlayBorder.BorderBrush = palette.OverlayEdgeHighlight;
         SearchBubble.Background = palette.OverlayBubbleFill;
         SearchBubble.BorderBrush = palette.OverlayBubbleBorder;
@@ -161,6 +181,36 @@ public partial class OverlayWindow : Window
 
         switch (e.Key)
         {
+            case Key.Left:
+                ScrollCardsBy(-CardKeyboardScrollStep);
+                e.Handled = true;
+                return;
+
+            case Key.Right:
+                ScrollCardsBy(CardKeyboardScrollStep);
+                e.Handled = true;
+                return;
+
+            case Key.PageUp:
+                ScrollCardsBy(-Math.Max(CardKeyboardScrollStep, CardsScroll.ViewportWidth * 0.85));
+                e.Handled = true;
+                return;
+
+            case Key.PageDown:
+                ScrollCardsBy(Math.Max(CardKeyboardScrollStep, CardsScroll.ViewportWidth * 0.85));
+                e.Handled = true;
+                return;
+
+            case Key.Home:
+                CardsScroll.ScrollToLeftEnd();
+                e.Handled = true;
+                return;
+
+            case Key.End:
+                CardsScroll.ScrollToRightEnd();
+                e.Handled = true;
+                return;
+
             case Key.Escape:
                 if (_viewModel.IsSearchBubbleVisible)
                 {
@@ -191,6 +241,30 @@ public partial class OverlayWindow : Window
         }
     }
 
+    private void OnCardsMouseWheel(object sender, MouseWheelEventArgs e)
+    {
+        if (CardsScroll.ScrollableWidth <= 0)
+        {
+            return;
+        }
+
+        ScrollCardsBy(-e.Delta);
+        e.Handled = true;
+    }
+
+    private void ScrollCardsBy(double delta)
+    {
+        if (CardsScroll.ScrollableWidth <= 0)
+        {
+            return;
+        }
+
+        var previousOffset = CardsScroll.HorizontalOffset;
+        var nextOffset = Math.Clamp(previousOffset + delta, 0, CardsScroll.ScrollableWidth);
+        CardsScroll.ScrollToHorizontalOffset(nextOffset);
+        DiagnosticLog.Write($"Overlay.ScrollCards previous={previousOffset:0} next={nextOffset:0} delta={delta:0} scrollable={CardsScroll.ScrollableWidth:0}");
+    }
+
     private void OnTextInput(object sender, TextCompositionEventArgs e)
     {
         if ((Keyboard.Modifiers & (ModifierKeys.Control | ModifierKeys.Alt | ModifierKeys.Windows)) != 0)
@@ -210,6 +284,7 @@ public partial class OverlayWindow : Window
 
     private void OnDeactivated(object sender, EventArgs e)
     {
+        DiagnosticLog.Write("Overlay deactivated");
         HideOverlay();
     }
 
