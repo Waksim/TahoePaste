@@ -74,10 +74,7 @@ struct OverlayView: View {
                             .onChange(of: viewModel.overlayPresentationID) {
                                 scrollToMostRecent(proxy, animated: false)
                             }
-                            .onChange(of: viewModel.searchQuery) {
-                                scrollToMostRecent(proxy)
-                            }
-                            .onChange(of: viewModel.activeTagFilter) {
+                            .onChange(of: viewModel.visibleItems.first?.id) {
                                 scrollToMostRecent(proxy)
                             }
                         }

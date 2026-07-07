@@ -5,6 +5,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using Forms = System.Windows.Forms;
 using TahoePaste.Windows.Localization;
+using TahoePaste.Windows.Models;
 using TahoePaste.Windows.Services;
 using TahoePaste.Windows.Themes;
 using TahoePaste.Windows.ViewModels;
@@ -14,8 +15,12 @@ namespace TahoePaste.Windows.Views;
 public partial class OverlayWindow : Window
 {
     private const double CardKeyboardScrollStep = 260;
+    private const int CardRenderBatchSize = 50;
+
     private readonly ClipboardHistoryViewModel _viewModel;
     private readonly AppSettings _settings;
+    private IReadOnlyList<ClipboardItem> _renderedItems = [];
+    private int _renderedCardCount;
 
     public OverlayWindow(ClipboardHistoryViewModel viewModel, AppSettings settings)
     {
@@ -28,6 +33,7 @@ public partial class OverlayWindow : Window
         _viewModel.PropertyChanged += OnViewModelChanged;
         _settings.PropertyChanged += OnSettingsChanged;
         L10n.LanguageChanged += (_, _) => Render();
+        CardsScroll.ScrollChanged += OnCardsScrollChanged;
     }
 
     public void ShowOverlay()
@@ -83,24 +89,44 @@ public partial class OverlayWindow : Window
     private void Render()
     {
         ApplyTheme();
+        RenderSearchBubble();
+        RenderCards();
+    }
+
+    private void RenderSearchBubble()
+    {
         SearchBubble.Visibility = _viewModel.IsSearchBubbleVisible ? Visibility.Visible : Visibility.Collapsed;
         SearchText.Text = _viewModel.SearchDisplayText;
+    }
 
+    private void RenderCards()
+    {
         CardsPanel.Children.Clear();
+        _renderedItems = _viewModel.VisibleItems;
+        _renderedCardCount = 0;
 
-        var visibleItems = _viewModel.VisibleItems;
-        EmptyPanel.Visibility = visibleItems.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
-        CardsScroll.Visibility = visibleItems.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
+        EmptyPanel.Visibility = _renderedItems.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+        CardsScroll.Visibility = _renderedItems.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
 
-        if (visibleItems.Count == 0)
+        if (_renderedItems.Count == 0)
         {
             EmptyTitle.Text = _viewModel.IsSearching ? L10n.Tr("overlay.no_matches_title") : L10n.Tr("overlay.empty_title");
             EmptySubtitle.Text = _viewModel.IsSearching ? L10n.Tr("overlay.no_matches_subtitle") : L10n.Tr("overlay.empty_subtitle");
             return;
         }
 
-        foreach (var item in visibleItems)
+        AppendCards(CardRenderBatchSize);
+    }
+
+    // Cards are materialized in batches: building a WPF control tree for every
+    // history item on each result change stalls the UI with large histories.
+    private void AppendCards(int count)
+    {
+        var limit = Math.Min(_renderedCardCount + count, _renderedItems.Count);
+
+        for (var index = _renderedCardCount; index < limit; index++)
         {
+            var item = _renderedItems[index];
             var card = new ClipboardCardControl(item, _viewModel.ImageFor(item), _settings, _viewModel.ActiveTagFilter);
             card.SelectRequested += selected => _viewModel.Select(selected);
             card.DeleteRequested += selected => _viewModel.Delete(selected);
@@ -108,7 +134,21 @@ public partial class OverlayWindow : Window
             CardsPanel.Children.Add(card);
         }
 
-        DiagnosticLog.Write($"Overlay.Render theme={_settings.ActiveTheme} visibleItems={visibleItems.Count} cards={CardsPanel.Children.Count} empty={EmptyPanel.Visibility} cardsScroll={CardsScroll.Visibility}");
+        _renderedCardCount = limit;
+        DiagnosticLog.Write($"Overlay.Render theme={_settings.ActiveTheme} visibleItems={_renderedItems.Count} cards={CardsPanel.Children.Count} empty={EmptyPanel.Visibility} cardsScroll={CardsScroll.Visibility}");
+    }
+
+    private void OnCardsScrollChanged(object sender, ScrollChangedEventArgs e)
+    {
+        if (_renderedCardCount >= _renderedItems.Count)
+        {
+            return;
+        }
+
+        if (e.HorizontalOffset + e.ViewportWidth >= e.ExtentWidth - e.ViewportWidth)
+        {
+            AppendCards(CardRenderBatchSize);
+        }
     }
 
     private void ApplyTheme()
@@ -142,12 +182,15 @@ public partial class OverlayWindow : Window
 
     private void OnViewModelChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName is nameof(ClipboardHistoryViewModel.VisibleItems)
-            or nameof(ClipboardHistoryViewModel.SearchDisplayText)
-            or nameof(ClipboardHistoryViewModel.IsSearchBubbleVisible)
+        if (e.PropertyName is nameof(ClipboardHistoryViewModel.SearchDisplayText)
+            or nameof(ClipboardHistoryViewModel.IsSearchBubbleVisible))
+        {
+            RenderSearchBubble();
+        }
+        else if (e.PropertyName is nameof(ClipboardHistoryViewModel.VisibleItems)
             or nameof(ClipboardHistoryViewModel.OverlayPresentationId))
         {
-            Render();
+            RenderCards();
             CardsScroll.ScrollToLeftEnd();
         }
     }

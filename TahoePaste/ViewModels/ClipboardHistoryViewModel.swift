@@ -4,6 +4,7 @@ import Foundation
 @MainActor
 final class ClipboardHistoryViewModel: ObservableObject {
     @Published private(set) var items: [ClipboardItem] = []
+    @Published private(set) var visibleItems: [ClipboardItem] = []
     @Published private(set) var searchQuery = ""
     @Published private(set) var isSearchInterfaceVisible = false
     @Published private(set) var activeTagFilter: ClipboardTag?
@@ -27,6 +28,11 @@ final class ClipboardHistoryViewModel: ObservableObject {
     private let storageManager: StorageManager
     private let settingsManager: SettingsManager
     private let imageCache = NSCache<NSString, NSImage>()
+    private var searchDocuments: [UUID: ClipboardSearchEngine.SearchDocument] = [:]
+    private var indexBuildTask: Task<Void, Never>?
+    private var searchTask: Task<Void, Never>?
+
+    var searchDebounceInterval: Duration = .milliseconds(150)
 
     init(storageManager: StorageManager, settingsManager: SettingsManager) {
         self.storageManager = storageManager
@@ -37,10 +43,6 @@ final class ClipboardHistoryViewModel: ObservableObject {
 
     var currentHistory: [ClipboardItem] {
         items
-    }
-
-    var visibleItems: [ClipboardItem] {
-        ClipboardSearchEngine.matches(for: filteredItems, query: searchQuery)
     }
 
     var isSearching: Bool {
@@ -101,11 +103,15 @@ final class ClipboardHistoryViewModel: ObservableObject {
     func replaceHistory(with newItems: [ClipboardItem]) {
         items = newItems.sorted(by: { $0.createdAt > $1.createdAt })
         refreshStorageUsage()
+        updateSearchIndex()
+        refreshVisibleItems(debounced: false)
     }
 
     func prepend(_ item: ClipboardItem) {
         items.insert(item, at: 0)
         refreshStorageUsage()
+        updateSearchIndex()
+        refreshVisibleItems(debounced: false)
     }
 
     func appendSearchCharacter(_ character: String) {
@@ -115,6 +121,7 @@ final class ClipboardHistoryViewModel: ObservableObject {
 
         isSearchInterfaceVisible = true
         searchQuery.append(contentsOf: character)
+        refreshVisibleItems(debounced: true)
     }
 
     func removeLastSearchCharacter() {
@@ -123,6 +130,7 @@ final class ClipboardHistoryViewModel: ObservableObject {
         }
 
         searchQuery.removeLast()
+        refreshVisibleItems(debounced: true)
     }
 
     func clearSearch() {
@@ -132,10 +140,12 @@ final class ClipboardHistoryViewModel: ObservableObject {
 
         searchQuery.removeAll()
         isSearchInterfaceVisible = false
+        refreshVisibleItems(debounced: false)
     }
 
     func toggleTagFilter(_ tag: ClipboardTag) {
         activeTagFilter = activeTagFilter == tag ? nil : tag
+        refreshVisibleItems(debounced: false)
     }
 
     func isFiltering(by tag: ClipboardTag) -> Bool {
@@ -144,7 +154,11 @@ final class ClipboardHistoryViewModel: ObservableObject {
 
     func clearTransientState() {
         clearSearch()
-        activeTagFilter = nil
+
+        if activeTagFilter != nil {
+            activeTagFilter = nil
+            refreshVisibleItems(debounced: false)
+        }
     }
 
     func beginSearch() {
@@ -256,11 +270,125 @@ final class ClipboardHistoryViewModel: ObservableObject {
         storageUsageLabel = updatedLabel
     }
 
-    private var filteredItems: [ClipboardItem] {
-        guard let activeTagFilter else {
-            return items
+    func waitForPendingSearchWork() async {
+        await indexBuildTask?.value
+        await searchTask?.value
+    }
+
+    private func updateSearchIndex() {
+        let currentIDs = Set(items.map(\.id))
+        let removedIDs = searchDocuments.keys.filter { currentIDs.contains($0) == false }
+
+        for removedID in removedIDs {
+            searchDocuments.removeValue(forKey: removedID)
+        }
+        ClipboardTagCache.removeTags(forItemIDs: removedIDs)
+
+        let unindexedItems = items.filter { searchDocuments[$0.id] == nil }
+        guard unindexedItems.isEmpty == false else {
+            return
         }
 
-        return items.filter { $0.tags.contains(activeTagFilter) }
+        indexBuildTask?.cancel()
+        indexBuildTask = Task { [weak self] in
+            guard let documents = await Self.buildDocuments(for: unindexedItems) else {
+                return
+            }
+
+            guard let self, Task.isCancelled == false else {
+                return
+            }
+
+            let liveIDs = Set(self.items.map(\.id))
+            for document in documents where liveIDs.contains(document.itemID) {
+                self.searchDocuments[document.itemID] = document
+            }
+        }
+    }
+
+    private func refreshVisibleItems(debounced: Bool) {
+        searchTask?.cancel()
+
+        let query = searchQuery
+        let tagFilter = activeTagFilter
+        let snapshotItems = items
+
+        // Empty query without a tag filter is the whole history — publish
+        // immediately so opening the overlay never waits on the pipeline.
+        if query.isEmpty, tagFilter == nil {
+            searchTask = nil
+            visibleItems = snapshotItems
+            return
+        }
+
+        let documents = searchDocuments
+        let debounceInterval = debounced ? searchDebounceInterval : Duration.zero
+
+        searchTask = Task { [weak self] in
+            if debounceInterval > .zero {
+                try? await Task.sleep(for: debounceInterval)
+
+                guard Task.isCancelled == false else {
+                    return
+                }
+            }
+
+            let result = await Self.computeVisibleItems(
+                items: snapshotItems,
+                documents: documents,
+                query: query,
+                tagFilter: tagFilter
+            )
+
+            guard let self, Task.isCancelled == false else {
+                return
+            }
+
+            self.visibleItems = result
+        }
+    }
+
+    nonisolated private static func buildDocuments(
+        for items: [ClipboardItem]
+    ) async -> [ClipboardSearchEngine.SearchDocument]? {
+        var documents: [ClipboardSearchEngine.SearchDocument] = []
+        documents.reserveCapacity(items.count)
+
+        for item in items {
+            guard Task.isCancelled == false else {
+                return nil
+            }
+
+            documents.append(ClipboardSearchEngine.makeDocument(for: item))
+        }
+
+        return documents
+    }
+
+    nonisolated private static func computeVisibleItems(
+        items: [ClipboardItem],
+        documents: [UUID: ClipboardSearchEngine.SearchDocument],
+        query: String,
+        tagFilter: ClipboardTag?
+    ) async -> [ClipboardItem] {
+        var candidates = items
+
+        if let tagFilter {
+            candidates = candidates.filter { $0.tags.contains(tagFilter) }
+        }
+
+        guard query.isEmpty == false else {
+            return candidates
+        }
+
+        // Items copied after the last index build are indexed on the fly; their
+        // detected tags stay in ClipboardTagCache, so the work isn't repeated.
+        let candidateDocuments = candidates.map { item in
+            documents[item.id] ?? ClipboardSearchEngine.makeDocument(for: item)
+        }
+
+        let orderedIDs = ClipboardSearchEngine.matches(documents: candidateDocuments, query: query)
+        let itemsByID = Dictionary(candidates.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
+        return orderedIDs.compactMap { itemsByID[$0] }
     }
 }

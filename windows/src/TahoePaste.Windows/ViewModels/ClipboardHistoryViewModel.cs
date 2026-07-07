@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Windows.Media.Imaging;
+using System.Windows.Threading;
 using TahoePaste.Windows.Localization;
 using TahoePaste.Windows.Models;
 using TahoePaste.Windows.Services;
@@ -13,6 +14,9 @@ public sealed class ClipboardHistoryViewModel : INotifyPropertyChanged
 {
     private readonly StorageService _storageService;
     private readonly AppSettings _settings;
+    private readonly DispatcherTimer _searchDebounceTimer;
+    private readonly Dictionary<string, BitmapImage> _imageCache = new();
+    private IReadOnlyList<ClipboardItem> _visibleItems = [];
     private string _searchQuery = string.Empty;
     private bool _isSearchInterfaceVisible;
     private ClipboardTag? _activeTagFilter;
@@ -26,6 +30,9 @@ public sealed class ClipboardHistoryViewModel : INotifyPropertyChanged
         _storageService = storageService;
         _settings = settings;
         _storageUsageLabel = storageService.FormattedStorageUsage();
+
+        _searchDebounceTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(150) };
+        _searchDebounceTimer.Tick += (_, _) => RecomputeVisibleItems();
 
         _settings.PropertyChanged += (_, _) => RefreshDerivedState();
         L10n.LanguageChanged += (_, _) => RefreshLocalizedState();
@@ -55,7 +62,7 @@ public sealed class ClipboardHistoryViewModel : INotifyPropertyChanged
                 OnPropertyChanged(nameof(IsSearchUiVisible));
                 OnPropertyChanged(nameof(IsSearchBubbleVisible));
                 OnPropertyChanged(nameof(SearchDisplayText));
-                OnPropertyChanged(nameof(VisibleItems));
+                ScheduleVisibleItemsRefresh();
             }
         }
     }
@@ -82,7 +89,7 @@ public sealed class ClipboardHistoryViewModel : INotifyPropertyChanged
             {
                 OnPropertyChanged(nameof(IsSearchBubbleVisible));
                 OnPropertyChanged(nameof(SearchDisplayText));
-                OnPropertyChanged(nameof(VisibleItems));
+                RecomputeVisibleItems();
             }
         }
     }
@@ -113,7 +120,7 @@ public sealed class ClipboardHistoryViewModel : INotifyPropertyChanged
 
     public IReadOnlyList<ClipboardItem> CurrentHistory => Items.ToArray();
 
-    public IReadOnlyList<ClipboardItem> VisibleItems => ClipboardSearchEngine.Matches(FilteredItems, SearchQuery);
+    public IReadOnlyList<ClipboardItem> VisibleItems => _visibleItems;
 
     public bool IsSearching => string.IsNullOrEmpty(SearchQuery) == false;
 
@@ -147,7 +154,26 @@ public sealed class ClipboardHistoryViewModel : INotifyPropertyChanged
     public string ApplicationSupportPath => _storageService.RootDirectory;
     public CultureInfo Culture => _settings.AppLanguage.Culture();
 
-    public BitmapImage? ImageFor(ClipboardItem item) => _storageService.LoadImage(item);
+    public BitmapImage? ImageFor(ClipboardItem item)
+    {
+        if (item.ImageFilename is not { Length: > 0 } filename)
+        {
+            return null;
+        }
+
+        if (_imageCache.TryGetValue(filename, out var cached))
+        {
+            return cached;
+        }
+
+        var image = _storageService.LoadImage(item);
+        if (image is not null)
+        {
+            _imageCache[filename] = image;
+        }
+
+        return image;
+    }
 
     public void ReplaceHistory(IEnumerable<ClipboardItem> items)
     {
@@ -159,6 +185,7 @@ public sealed class ClipboardHistoryViewModel : INotifyPropertyChanged
         }
 
         RefreshAfterHistoryChange();
+        WarmSearchIndex();
     }
 
     public void AppendSearchCharacter(string character)
@@ -240,7 +267,8 @@ public sealed class ClipboardHistoryViewModel : INotifyPropertyChanged
     private void RefreshAfterHistoryChange()
     {
         RefreshStorageUsage();
-        OnPropertyChanged(nameof(VisibleItems));
+        PruneImageCache();
+        RecomputeVisibleItems();
         OnPropertyChanged(nameof(SavedItemsStatusLabel));
         OnPropertyChanged(nameof(HistoryCountLabel));
     }
@@ -249,7 +277,49 @@ public sealed class ClipboardHistoryViewModel : INotifyPropertyChanged
     {
         OnPropertyChanged(nameof(MonitoringStatusLabel));
         OnPropertyChanged(nameof(MaximumHistoryItemsLabel));
+        RecomputeVisibleItems();
+    }
+
+    // Already-indexed items are cheap cache hits, so re-warming after every
+    // history change only pays for the items that are actually new.
+    private void WarmSearchIndex()
+    {
+        var snapshot = Items.ToArray();
+        _ = Task.Run(() => ClipboardSearchEngine.WarmUp(snapshot));
+    }
+
+    private void ScheduleVisibleItemsRefresh()
+    {
+        // An empty query means the whole (tag-filtered) history — publish it
+        // immediately so clearing the search never waits on the debounce.
+        if (string.IsNullOrEmpty(SearchQuery))
+        {
+            RecomputeVisibleItems();
+            return;
+        }
+
+        _searchDebounceTimer.Stop();
+        _searchDebounceTimer.Start();
+    }
+
+    private void RecomputeVisibleItems()
+    {
+        _searchDebounceTimer.Stop();
+        _visibleItems = ClipboardSearchEngine.Matches(FilteredItems, SearchQuery);
         OnPropertyChanged(nameof(VisibleItems));
+    }
+
+    private void PruneImageCache()
+    {
+        var liveFilenames = Items
+            .Where(item => item.ImageFilename is { Length: > 0 })
+            .Select(item => item.ImageFilename!)
+            .ToHashSet();
+
+        foreach (var staleFilename in _imageCache.Keys.Where(filename => liveFilenames.Contains(filename) == false).ToList())
+        {
+            _imageCache.Remove(staleFilename);
+        }
     }
 
     private void RefreshLocalizedState()
