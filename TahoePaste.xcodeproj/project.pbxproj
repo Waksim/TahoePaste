@@ -33,6 +33,7 @@
 		CAC6C3536F8369CBEB9C09B7 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D578E696935D0839EB66DB5 /* AppDelegate.swift */; };
 		CC4FC596BB9FDFCE7CB15B82 /* OverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2744CC57453CAB087F1CAE7 /* OverlayView.swift */; };
 		D5E6C0CE85851CFDAF6D7B81 /* ClipboardCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E8C84D71E2AF21A3462D463 /* ClipboardCardView.swift */; };
+		DFA77BE409885C4BD79205A7 /* ClipboardTagCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = A429AA30E9B902AF73DE415A /* ClipboardTagCache.swift */; };
 		E9CAEF043EC773A3A80A1384 /* TahoePasteApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = F93326CCA5CBC08FB32409A0 /* TahoePasteApp.swift */; };
 /* End PBXBuildFile section */
 
@@ -71,6 +72,7 @@
 		89F1266C1564F05F55C46C2F /* SettingsWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsWindowController.swift; sourceTree = "<group>"; };
 		8DEACCF59F534489A8AF9981 /* PasteActionController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PasteActionController.swift; sourceTree = "<group>"; };
 		967FBD4A015513E6A100F9F9 /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/Localizable.strings; sourceTree = "<group>"; };
+		A429AA30E9B902AF73DE415A /* ClipboardTagCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardTagCache.swift; sourceTree = "<group>"; };
 		BAA387C20982BAFA7374FE63 /* MenuBarIconView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarIconView.swift; sourceTree = "<group>"; };
 		D2744CC57453CAB087F1CAE7 /* OverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayView.swift; sourceTree = "<group>"; };
 		DC6BB5A91566E9E5CAE5F428 /* MenuBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarView.swift; sourceTree = "<group>"; };
@@ -182,6 +184,7 @@
 			children = (
 				E32140C0FC6744E00AA1D46F /* ClipboardContentClassifier.swift */,
 				7353AB61982940BD95803E08 /* ClipboardItem.swift */,
+				A429AA30E9B902AF73DE415A /* ClipboardTagCache.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -303,6 +306,7 @@
 				44CDB3382B0FB64DA066FBAD /* ClipboardItem.swift in Sources */,
 				333DDC543FCB4B9644298BFD /* ClipboardManager.swift in Sources */,
 				439F75D97902482CC60A5C50 /* ClipboardSearchEngine.swift in Sources */,
+				DFA77BE409885C4BD79205A7 /* ClipboardTagCache.swift in Sources */,
 				A604FBEB3245B8F8966EAE1B /* HotkeyController.swift in Sources */,
 				BF7F559E4A124A3FB5FE6B3E /* KeyboardLayoutMapper.swift in Sources */,
 				18E8CF6BF2E4E9257993976A /* L10n.swift in Sources */,

@@ -20,20 +20,31 @@ public static partial class ClipboardContentClassifier
         return ClipboardKind.Text;
     }
 
+    // Mirrors the macOS classifier: tag detection only analyses the head of
+    // very large texts so the regex suite stays cheap.
+    private const int MaxAnalyzedCharacterCount = 4_000;
+
     public static IReadOnlyList<ClipboardTag> DetectedTags(string text)
     {
+        var analyzedText = AnalysisText(text);
         var tags = new List<ClipboardTag>();
 
-        AddIf(tags, ClipboardTag.Link, LooksLikeLink(text));
-        AddIf(tags, ClipboardTag.Code, LooksLikeCode(text));
-        AddIf(tags, ClipboardTag.Email, EmailRegex().IsMatch(text));
-        AddIf(tags, ClipboardTag.Phone, PhoneRegex().IsMatch(text));
-        AddIf(tags, ClipboardTag.Password, PasswordContextRegex().IsMatch(text));
-        AddIf(tags, ClipboardTag.Token, LooksLikeToken(text));
-        AddIf(tags, ClipboardTag.DateTime, DateRegex().IsMatch(text));
-        AddIf(tags, ClipboardTag.Address, AddressRegex().IsMatch(text));
+        AddIf(tags, ClipboardTag.Link, LooksLikeLink(analyzedText));
+        AddIf(tags, ClipboardTag.Code, LooksLikeCode(analyzedText));
+        AddIf(tags, ClipboardTag.Email, EmailRegex().IsMatch(analyzedText));
+        AddIf(tags, ClipboardTag.Phone, PhoneRegex().IsMatch(analyzedText));
+        AddIf(tags, ClipboardTag.Password, PasswordContextRegex().IsMatch(analyzedText));
+        AddIf(tags, ClipboardTag.Token, LooksLikeToken(analyzedText));
+        AddIf(tags, ClipboardTag.DateTime, DateRegex().IsMatch(analyzedText));
+        AddIf(tags, ClipboardTag.Address, AddressRegex().IsMatch(analyzedText));
 
         return tags;
+    }
+
+    private static string AnalysisText(string text)
+    {
+        var trimmed = text.Trim();
+        return trimmed.Length <= MaxAnalyzedCharacterCount ? trimmed : trimmed[..MaxAnalyzedCharacterCount];
     }
 
     private static void AddIf(List<ClipboardTag> tags, ClipboardTag tag, bool condition)

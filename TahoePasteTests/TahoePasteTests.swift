@@ -387,6 +387,130 @@ final class TahoePasteTests: XCTestCase {
         XCTAssertEqual(matches.last?.kind, .text)
     }
 
+    func testSearchDocumentIndexesHeadAndTailOfLargeText() {
+        let headPadding = String(repeating: "a", count: ClipboardSearchEngine.indexedHeadCharacterCount)
+        let tailPadding = String(repeating: "b", count: ClipboardSearchEngine.indexedTailCharacterCount + 1_000)
+
+        let headItem = makeTextItem("zebrafish " + headPadding + tailPadding)
+        let headDocument = ClipboardSearchEngine.makeDocument(for: headItem)
+        XCTAssertEqual(ClipboardSearchEngine.matches(documents: [headDocument], query: "zebrafish"), [headItem.id])
+
+        let tailItem = makeTextItem(headPadding + tailPadding + " zebrafish")
+        let tailDocument = ClipboardSearchEngine.makeDocument(for: tailItem)
+        XCTAssertEqual(ClipboardSearchEngine.matches(documents: [tailDocument], query: "zebrafish"), [tailItem.id])
+
+        let middleItem = makeTextItem(headPadding + " zebrafish " + tailPadding)
+        let middleDocument = ClipboardSearchEngine.makeDocument(for: middleItem)
+        XCTAssertTrue(ClipboardSearchEngine.matches(documents: [middleDocument], query: "zebrafish").isEmpty)
+    }
+
+    func testSearchRanksWordBoundaryMatchesAboveSubstringMatches() {
+        let boundaryItem = makeTextItem("rebar bar fittings")
+        let substringItem = makeTextItem("crowbars", age: -1)
+
+        let matches = ClipboardSearchEngine.matches(for: [substringItem, boundaryItem], query: "bar")
+
+        XCTAssertEqual(matches.map(\.id), [boundaryItem.id, substringItem.id])
+    }
+
+    func testClipboardTagCacheMatchesDirectClassification() {
+        let item = makeTextItem("Contact me at user@example.com")
+
+        var expectedTags = [item.kind.primaryTag]
+        for tag in ClipboardContentClassifier.detectedTags(for: item.text ?? "") where expectedTags.contains(tag) == false {
+            expectedTags.append(tag)
+        }
+
+        XCTAssertEqual(item.tags, expectedTags)
+        XCTAssertEqual(item.tags, expectedTags)
+
+        ClipboardTagCache.removeTags(forItemIDs: [item.id])
+        XCTAssertEqual(item.tags, expectedTags)
+    }
+
+    @MainActor
+    func testViewModelSearchPipelinePublishesFilteredResults() async {
+        let viewModel = ClipboardHistoryViewModel(
+            storageManager: StorageManager(rootDirectoryURL: makeTemporaryDirectory()),
+            settingsManager: SettingsManager.shared
+        )
+        viewModel.searchDebounceInterval = .zero
+
+        let apple = makeTextItem("Apple pie recipe")
+        let banana = makeTextItem("Banana split", age: -1)
+        let cherry = makeTextItem("Cherry cake", age: -2)
+
+        viewModel.replaceHistory(with: [apple, banana, cherry])
+        XCTAssertEqual(viewModel.visibleItems.map(\.id), [apple.id, banana.id, cherry.id])
+
+        viewModel.appendSearchCharacter("banana")
+        await viewModel.waitForPendingSearchWork()
+        XCTAssertEqual(viewModel.visibleItems.map(\.id), [banana.id])
+
+        viewModel.replaceHistory(with: [apple, cherry])
+        await viewModel.waitForPendingSearchWork()
+        XCTAssertTrue(viewModel.visibleItems.isEmpty)
+
+        viewModel.clearSearch()
+        await viewModel.waitForPendingSearchWork()
+        XCTAssertEqual(viewModel.visibleItems.map(\.id), [apple.id, cherry.id])
+    }
+
+    func testSingleCharacterSearchOverLargeHistoryStaysFast() {
+        var items: [ClipboardItem] = []
+        items.reserveCapacity(3_001)
+
+        for index in 0..<3_000 {
+            let text: String
+            switch index % 5 {
+            case 0:
+                text = "Meeting with the team on 12.03.2026 14:30 about release \(index)"
+            case 1:
+                text = "Contact: user\(index)@example.com, phone +1 (415) 555-0\(String(format: "%03d", index % 1_000))"
+            case 2:
+                text = "https://example.com/articles/\(index)/how-to-optimize-search"
+            case 3:
+                text = "func compute\(index)() { return value * \(index) } // sample snippet"
+            default:
+                text = "Random note number \(index) with some plain content to search through"
+            }
+
+            items.append(makeTextItem(text, age: -TimeInterval(index)))
+        }
+
+        items.append(makeTextItem(String(repeating: "log line with assorted details to scan ", count: 40_000)))
+
+        let clock = ContinuousClock()
+
+        var documents: [ClipboardSearchEngine.SearchDocument] = []
+        let buildDuration = clock.measure {
+            documents = items.map(ClipboardSearchEngine.makeDocument)
+        }
+
+        var matchedIDs: [UUID] = []
+        let searchDuration = clock.measure {
+            matchedIDs = ClipboardSearchEngine.matches(documents: documents, query: "e")
+        }
+
+        print("Search index build for \(items.count) items took \(buildDuration); single-character search took \(searchDuration)")
+
+        XCTAssertFalse(matchedIDs.isEmpty)
+        XCTAssertLessThan(searchDuration, .seconds(1))
+    }
+
+    private func makeTextItem(_ text: String, age: TimeInterval = 0) -> ClipboardItem {
+        ClipboardItem(
+            id: UUID(),
+            kind: .text,
+            createdAt: Date().addingTimeInterval(age),
+            text: text,
+            textPreview: ClipboardItem.previewText(from: text),
+            imageFilename: nil,
+            pixelSize: nil,
+            fileReferences: nil
+        )
+    }
+
     private func makeTemporaryDirectory() -> URL {
         let url = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
         try? FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)

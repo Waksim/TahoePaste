@@ -1,25 +1,56 @@
 import Foundation
 
 struct ClipboardSearchEngine {
-    struct Match: Equatable {
-        let item: ClipboardItem
-        let score: Int
+    /// Search documents index only the head and the tail of very large texts;
+    /// the classifier (4 000) and preview (180) set the precedent for capping
+    /// analysed text. The tail is kept because the end of a long buffer (log
+    /// output, appended notes) is a common search target.
+    static let indexedHeadCharacterCount = 5_000
+    static let indexedTailCharacterCount = 2_000
+
+    /// Precomputed, normalized searchable representation of a single item.
+    /// Building a document is the expensive part (folding, whitespace collapse,
+    /// tag detection); matching against it is a plain substring scan.
+    struct SearchDocument: Equatable, Sendable {
+        let itemID: UUID
+        let createdAt: Date
+        let normalizedTexts: [String]
+        let normalizedTagKeywords: [String]
+    }
+
+    static func makeDocument(for item: ClipboardItem) -> SearchDocument {
+        SearchDocument(
+            itemID: item.id,
+            createdAt: item.createdAt,
+            normalizedTexts: searchableTexts(for: item),
+            normalizedTagKeywords: tagTexts(for: item)
+        )
     }
 
     static func matches(for items: [ClipboardItem], query: String) -> [ClipboardItem] {
+        guard normalize(query).isEmpty == false else {
+            return items
+        }
+
+        let orderedIDs = matches(documents: items.map(makeDocument), query: query)
+        let itemsByID = Dictionary(items.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
+        return orderedIDs.compactMap { itemsByID[$0] }
+    }
+
+    static func matches(documents: [SearchDocument], query: String) -> [UUID] {
         let normalizedQuery = normalize(query)
         guard normalizedQuery.isEmpty == false else {
-            return items
+            return documents.map(\.itemID)
         }
 
         let alternateQuery = normalize(KeyboardLayoutMapper.swappedLayout(for: query))
 
-        let rankedMatches = items.compactMap { item -> Match? in
-            guard let bestScore = bestScore(for: item, query: normalizedQuery, alternateQuery: alternateQuery) else {
+        let rankedMatches = documents.compactMap { document -> (id: UUID, createdAt: Date, score: Int)? in
+            guard let bestScore = bestScore(for: document, query: normalizedQuery, alternateQuery: alternateQuery) else {
                 return nil
             }
 
-            return Match(item: item, score: bestScore)
+            return (document.itemID, document.createdAt, bestScore)
         }
 
         return rankedMatches
@@ -28,9 +59,9 @@ struct ClipboardSearchEngine {
                     return left.score > right.score
                 }
 
-                return left.item.createdAt > right.item.createdAt
+                return left.createdAt > right.createdAt
             }
-            .map(\.item)
+            .map(\.id)
     }
 
     static func normalize(_ string: String) -> String {
@@ -41,39 +72,41 @@ struct ClipboardSearchEngine {
             .trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
-    private static func bestScore(for item: ClipboardItem, query: String, alternateQuery: String) -> Int? {
-        var candidateScores: [Int] = []
+    private static func bestScore(for document: SearchDocument, query: String, alternateQuery: String) -> Int? {
+        var bestScore: Int?
 
-        for haystack in searchableTexts(for: item) {
-            if let score = score(for: haystack, query: query, variantPenalty: 0) {
-                candidateScores.append(score)
-            }
-
-            if alternateQuery.isEmpty == false, alternateQuery != query,
-               let score = score(for: haystack, query: alternateQuery, variantPenalty: 350) {
-                candidateScores.append(score)
+        func consider(_ candidate: Int?) {
+            if let candidate, candidate > (bestScore ?? Int.min) {
+                bestScore = candidate
             }
         }
 
-        for haystack in tagTexts(for: item) {
-            if let score = score(for: haystack, query: query, variantPenalty: 1_100) {
-                candidateScores.append(score)
-            }
+        let hasAlternate = alternateQuery.isEmpty == false && alternateQuery != query
 
-            if alternateQuery.isEmpty == false, alternateQuery != query,
-               let score = score(for: haystack, query: alternateQuery, variantPenalty: 1_450) {
-                candidateScores.append(score)
+        for haystack in document.normalizedTexts {
+            consider(score(for: haystack, query: query, variantPenalty: 0))
+
+            if hasAlternate {
+                consider(score(for: haystack, query: alternateQuery, variantPenalty: 350))
             }
         }
 
-        return candidateScores.max()
+        for haystack in document.normalizedTagKeywords {
+            consider(score(for: haystack, query: query, variantPenalty: 1_100))
+
+            if hasAlternate {
+                consider(score(for: haystack, query: alternateQuery, variantPenalty: 1_450))
+            }
+        }
+
+        return bestScore
     }
 
     private static func searchableTexts(for item: ClipboardItem) -> [String] {
         var results: [String] = []
 
         if let text = item.text {
-            let normalizedText = normalize(text)
+            let normalizedText = normalize(indexableText(text))
             if normalizedText.isEmpty == false {
                 results.append(normalizedText)
             }
@@ -103,8 +136,25 @@ struct ClipboardSearchEngine {
         return results
     }
 
+    // The space between the chunks keeps a query from matching across the seam.
+    static func indexableText(_ text: String) -> String {
+        guard text.count > indexedHeadCharacterCount + indexedTailCharacterCount else {
+            return text
+        }
+
+        return text.prefix(indexedHeadCharacterCount) + " " + text.suffix(indexedTailCharacterCount)
+    }
+
+    private static let normalizedKeywordsByTag: [ClipboardTag: [String]] = {
+        var result: [ClipboardTag: [String]] = [:]
+        for tag in ClipboardTag.allCases {
+            result[tag] = tag.searchKeywords.map(normalize).filter { $0.isEmpty == false }
+        }
+        return result
+    }()
+
     private static func tagTexts(for item: ClipboardItem) -> [String] {
-        Array(Set(item.tags.flatMap(\.searchKeywords).map(normalize).filter { $0.isEmpty == false }))
+        Array(Set(item.tags.flatMap { normalizedKeywordsByTag[$0] ?? [] }))
     }
 
     private static func score(for haystack: String, query: String, variantPenalty: Int) -> Int? {
@@ -120,30 +170,40 @@ struct ClipboardSearchEngine {
             return 1_500 - variantPenalty
         }
 
-        if let wordBoundaryIndex = wordBoundaryMatchIndex(in: haystack, query: query) {
-            return 1_250 - variantPenalty - min(wordBoundaryIndex, 200)
+        guard let firstRange = haystack.range(of: query) else {
+            return nil
         }
 
-        if let range = haystack.range(of: query) {
-            let position = haystack.distance(from: haystack.startIndex, to: range.lowerBound)
-            return 1_000 - variantPenalty - min(position, 250)
+        if let boundaryIndex = wordBoundaryMatchIndex(in: haystack, query: query, firstOccurrence: firstRange) {
+            return 1_250 - variantPenalty - min(boundaryIndex, 200)
         }
 
-        return nil
+        let position = haystack.distance(from: haystack.startIndex, to: firstRange.lowerBound)
+        return 1_000 - variantPenalty - min(position, 250)
     }
 
-    private static func wordBoundaryMatchIndex(in haystack: String, query: String) -> Int? {
-        var currentIndex = haystack.startIndex
+    private static func wordBoundaryMatchIndex(
+        in haystack: String,
+        query: String,
+        firstOccurrence: Range<String.Index>
+    ) -> Int? {
+        // Walk occurrences instead of every character position: the previous
+        // implementation ran hasPrefix at each index, which is O(n·m) on large
+        // clipboard texts.
+        var occurrence: Range<String.Index>? = firstOccurrence
 
-        while currentIndex < haystack.endIndex {
-            let previousIndex = currentIndex == haystack.startIndex ? nil : haystack.index(before: currentIndex)
-            let previousCharacter = previousIndex.map { haystack[$0] }
+        while let currentOccurrence = occurrence {
+            let lowerBound = currentOccurrence.lowerBound
+            let previousCharacter = lowerBound == haystack.startIndex
+                ? nil
+                : haystack[haystack.index(before: lowerBound)]
 
-            if isWordBoundary(previousCharacter), haystack[currentIndex...].hasPrefix(query) {
-                return haystack.distance(from: haystack.startIndex, to: currentIndex)
+            if isWordBoundary(previousCharacter) {
+                return haystack.distance(from: haystack.startIndex, to: lowerBound)
             }
 
-            currentIndex = haystack.index(after: currentIndex)
+            let nextSearchStart = haystack.index(after: lowerBound)
+            occurrence = haystack.range(of: query, range: nextSearchStart..<haystack.endIndex)
         }
 
         return nil

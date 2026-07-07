@@ -401,23 +401,7 @@ struct ClipboardItem: Identifiable, Codable, Hashable {
     }
 
     var tags: [ClipboardTag] {
-        var resolvedTags = [kind.primaryTag]
-
-        if kind != .file, let text {
-            for tag in ClipboardContentClassifier.detectedTags(for: text) where resolvedTags.contains(tag) == false {
-                resolvedTags.append(tag)
-            }
-        }
-
-        if let fileReferences {
-            for fileReference in fileReferences {
-                for tag in fileReference.category.tags where resolvedTags.contains(tag) == false {
-                    resolvedTags.append(tag)
-                }
-            }
-        }
-
-        return resolvedTags
+        ClipboardTagCache.tags(for: self)
     }
 
     var displayTags: [ClipboardTag] {

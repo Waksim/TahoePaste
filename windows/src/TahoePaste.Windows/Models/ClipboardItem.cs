@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
 using TahoePaste.Windows.Localization;
 using TahoePaste.Windows.Services;
@@ -39,16 +40,34 @@ public sealed record ClipboardItem(
     [JsonIgnore]
     public int FileCount => FileReferences?.Count ?? 0;
 
-    [JsonIgnore]
-    public IReadOnlyList<ClipboardTag> Tags
-    {
-        get
-        {
-            var tags = new List<ClipboardTag> { Kind.PrimaryTag() };
+    // The record is immutable, so tag detection (regex heavy) runs at most once
+    // per instance. The cache lives outside the record so it does not take part
+    // in the synthesized record equality.
+    private static readonly ConditionalWeakTable<ClipboardItem, IReadOnlyList<ClipboardTag>> TagCache = new();
 
-            if (Kind != ClipboardKind.File && Text is { Length: > 0 } text)
+    [JsonIgnore]
+    public IReadOnlyList<ClipboardTag> Tags => TagCache.GetValue(this, static item => item.ResolveTags());
+
+    private IReadOnlyList<ClipboardTag> ResolveTags()
+    {
+        var tags = new List<ClipboardTag> { Kind.PrimaryTag() };
+
+        if (Kind != ClipboardKind.File && Text is { Length: > 0 } text)
+        {
+            foreach (var tag in ClipboardContentClassifier.DetectedTags(text))
             {
-                foreach (var tag in ClipboardContentClassifier.DetectedTags(text))
+                if (tags.Contains(tag) == false)
+                {
+                    tags.Add(tag);
+                }
+            }
+        }
+
+        if (FileReferences is not null)
+        {
+            foreach (var reference in FileReferences)
+            {
+                foreach (var tag in reference.Category.Tags())
                 {
                     if (tags.Contains(tag) == false)
                     {
@@ -56,23 +75,9 @@ public sealed record ClipboardItem(
                     }
                 }
             }
-
-            if (FileReferences is not null)
-            {
-                foreach (var reference in FileReferences)
-                {
-                    foreach (var tag in reference.Category.Tags())
-                    {
-                        if (tags.Contains(tag) == false)
-                        {
-                            tags.Add(tag);
-                        }
-                    }
-                }
-            }
-
-            return tags;
         }
+
+        return tags;
     }
 
     [JsonIgnore]
