@@ -70,6 +70,10 @@ final class SettingsManager: ObservableObject {
             }
         }
 
+        var totalCardHeight: CGFloat {
+            cardHeight + contentPadding * 2
+        }
+
         var imagePreviewHeight: CGFloat {
             switch self {
             case .compact:

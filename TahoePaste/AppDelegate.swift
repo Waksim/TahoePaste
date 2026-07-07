@@ -203,6 +203,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
             .store(in: &cancellables)
 
+        settingsManager.$cardSizePreset
+            .dropFirst()
+            .sink { [weak self] _ in
+                self?.overlayWindowController.refreshLayoutIfVisible()
+            }
+            .store(in: &cancellables)
+
         settingsManager.$appLanguage
             .dropFirst()
             .receive(on: RunLoop.main)

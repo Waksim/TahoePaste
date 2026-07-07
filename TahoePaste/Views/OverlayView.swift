@@ -1,10 +1,12 @@
 import SwiftUI
 
 struct OverlayView: View {
+    // Includes the search bubble and toolbar row; OverlayWindowController uses it
+    // to keep the window tall enough for the card row below.
+    static let topBarHeight: CGFloat = 36
+
     @ObservedObject var viewModel: ClipboardHistoryViewModel
     @ObservedObject var settingsManager: SettingsManager
-    private let searchBubbleTopPadding: CGFloat = 8
-    private let searchBubbleBottomPadding: CGFloat = 6
 
     private var themePalette: SettingsManager.ThemePalette {
         settingsManager.themePalette
@@ -31,11 +33,7 @@ struct OverlayView: View {
                     }
 
                 VStack(spacing: 0) {
-                    if viewModel.isSearchBubbleVisible {
-                        searchBubble
-                            .padding(.top, searchBubbleTopPadding)
-                            .padding(.bottom, searchBubbleBottomPadding)
-                    }
+                    topBar(proxy: proxy)
 
                     Group {
                         if viewModel.visibleItems.isEmpty {
@@ -84,9 +82,6 @@ struct OverlayView: View {
                 .padding(.horizontal, 0)
                 .padding(.vertical, 0)
             }
-            .overlay(alignment: .topTrailing) {
-                overlayControls(proxy: proxy)
-            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .environment(\.locale, settingsManager.appLanguage.locale)
@@ -116,6 +111,7 @@ struct OverlayView: View {
                 .foregroundStyle(themePalette.overlaySecondaryText.opacity(0.92))
                 .frame(maxWidth: 360, alignment: .leading)
         }
+        .padding(.horizontal, 24)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
     }
 
@@ -131,7 +127,24 @@ struct OverlayView: View {
                 .lineLimit(2)
                 .frame(maxWidth: 420, alignment: .leading)
         }
+        .padding(.horizontal, 24)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+    }
+
+    private func topBar(proxy: ScrollViewProxy) -> some View {
+        HStack(spacing: 12) {
+            if viewModel.isSearchBubbleVisible {
+                searchBubble
+                    .frame(maxWidth: .infinity, alignment: .center)
+            } else {
+                Spacer(minLength: 0)
+            }
+
+            overlayControls(proxy: proxy)
+        }
+        .padding(.leading, 16)
+        .padding(.trailing, 10)
+        .frame(height: Self.topBarHeight)
     }
 
     private var searchBubble: some View {
@@ -168,8 +181,7 @@ struct OverlayView: View {
                 .strokeBorder(themePalette.overlayBubbleBorder, lineWidth: 1)
         )
         .shadow(color: .black.opacity(0.18), radius: 10, y: 4)
-        .padding(.horizontal, 16)
-        .frame(maxWidth: .infinity, alignment: .center)
+        .frame(maxWidth: 480)
     }
 
     private func overlayControls(proxy: ScrollViewProxy) -> some View {
@@ -186,8 +198,6 @@ struct OverlayView: View {
                 scrollToMostRecent(proxy)
             }
         }
-        .padding(.top, 5)
-        .padding(.trailing, 10)
     }
 
     private func toolbarButton(systemName: String, action: @escaping () -> Void) -> some View {
@@ -203,18 +213,14 @@ struct OverlayView: View {
     }
 
     private var cardRowVerticalPadding: CGFloat {
-        let basePadding: CGFloat
-
         switch settingsManager.cardSizePreset {
         case .compact:
-            basePadding = 8
+            return 8
         case .comfortable:
-            basePadding = 12
+            return 12
         case .large:
-            basePadding = 16
+            return 16
         }
-
-        return viewModel.isSearchUIVisible ? max(basePadding - 4, 6) : basePadding
     }
 
     private func scrollToMostRecent(_ proxy: ScrollViewProxy, animated: Bool = true) {

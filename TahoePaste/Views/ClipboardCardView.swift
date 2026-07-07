@@ -41,7 +41,7 @@ struct ClipboardCardView: View {
     }
 
     private var totalCardHeight: CGFloat {
-        cardHeight + (cardPadding * 2)
+        settingsManager.cardSizePreset.totalCardHeight
     }
 
     private var controlInset: CGFloat {
@@ -67,7 +67,7 @@ struct ClipboardCardView: View {
             }
             .buttonStyle(.plain)
 
-            tagsRow
+            cardTopRow
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
 
             Button(action: deleteAction) {
@@ -86,7 +86,9 @@ struct ClipboardCardView: View {
 
     private var textCard: some View {
         VStack(alignment: .leading, spacing: 8) {
-            cardHeader(metadataText: item.metadataText(locale: locale))
+            // Keeps the preview clear of the cardTopRow overlay above.
+            Color.clear
+                .frame(height: headerReservedHeight)
 
             Text(item.displayPreviewText)
                 .font(previewFont)
@@ -112,15 +114,6 @@ struct ClipboardCardView: View {
                 startPoint: .top,
                 endPoint: .bottom
             )
-
-            VStack(alignment: .leading, spacing: 0) {
-                cardHeader(metadataText: item.metadataText(locale: locale))
-                    .padding(.top, 12)
-                    .padding(.horizontal, 16)
-                    .padding(.trailing, deleteButtonReservedWidth)
-
-                Spacer()
-            }
         }
     }
 
@@ -150,11 +143,31 @@ struct ClipboardCardView: View {
         .animation(.snappy(duration: 0.18), value: isHovered)
     }
 
-    private func cardHeader(metadataText: String?) -> some View {
-        HStack(spacing: 8) {
-            Spacer(minLength: 0)
+    // Tags and metadata share one row so they truncate instead of overlapping
+    // when both sides are long.
+    private var cardTopRow: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+            ForEach(item.displayTags) { tag in
+                Button(action: { tagAction(tag) }) {
+                    Text(L10n.tr(tag.titleKey))
+                        .font(.system(size: 11, weight: .semibold, design: .rounded))
+                        .foregroundStyle(
+                            item.isImage
+                                ? themePalette.imageTagText.opacity(activeTagFilter == tag ? 0.96 : 0.88)
+                                : themePalette.cardTextTag.opacity(activeTagFilter == tag ? 0.96 : 0.78)
+                        )
+                        .lineLimit(1)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+            }
 
-            if settingsManager.showMetadataOnCards, let metadataText, metadataText.isEmpty == false {
+            Spacer(minLength: 12)
+
+            if settingsManager.showMetadataOnCards,
+               let metadataText = item.metadataText(locale: locale),
+               metadataText.isEmpty == false
+            {
                 Text(metadataText)
                     .font(.system(size: 10, weight: .medium, design: .rounded))
                     .foregroundStyle(
@@ -163,6 +176,8 @@ struct ClipboardCardView: View {
                             : themePalette.cardTextMetadata.opacity(0.82)
                     )
                     .lineLimit(1)
+                    .layoutPriority(1)
+                    .allowsHitTesting(false)
             }
 
             if settingsManager.showTimestampsOnCards {
@@ -174,29 +189,13 @@ struct ClipboardCardView: View {
                             : themePalette.cardTextMetadata.opacity(0.76)
                     )
                     .lineLimit(1)
-            }
-        }
-        .frame(height: headerReservedHeight, alignment: .topTrailing)
-    }
-
-    private var tagsRow: some View {
-        HStack(spacing: 8) {
-            ForEach(item.displayTags) { tag in
-                Button(action: { tagAction(tag) }) {
-                    Text(L10n.tr(tag.titleKey))
-                        .font(.system(size: 11, weight: .semibold, design: .rounded))
-                        .foregroundStyle(
-                            item.isImage
-                                ? themePalette.imageTagText.opacity(activeTagFilter == tag ? 0.96 : 0.88)
-                                : themePalette.cardTextTag.opacity(activeTagFilter == tag ? 0.96 : 0.78)
-                        )
-                        .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
+                    .layoutPriority(2)
+                    .allowsHitTesting(false)
             }
         }
         .padding(.top, controlInset)
         .padding(.leading, controlInset)
+        .padding(.trailing, controlInset + deleteButtonReservedWidth)
     }
 
     private var deleteButtonLabel: some View {
