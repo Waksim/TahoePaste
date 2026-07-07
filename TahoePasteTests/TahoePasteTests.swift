@@ -343,6 +343,38 @@ final class TahoePasteTests: XCTestCase {
         XCTAssertTrue(item.displayPreviewText.contains("Readme.txt"))
     }
 
+    func testStorageManagerStoresDownscaledPreviewForSingleImageFilePayload() throws {
+        let storageManager = StorageManager(rootDirectoryURL: makeTemporaryDirectory())
+        let image = makeImage(size: NSSize(width: 1600, height: 800), color: .systemTeal)
+        let fileURL = makeTemporaryDirectory().appendingPathComponent("Photo.png")
+        try StorageManager.pngData(from: image).write(to: fileURL)
+
+        let item = try storageManager.store(payload: .fileURLs([fileURL]))
+        let preview = try XCTUnwrap(storageManager.loadImage(for: item))
+
+        XCTAssertEqual(item.kind, .file)
+        XCTAssertNotNil(item.imageFilename)
+        XCTAssertEqual(item.pixelSize, ClipboardPixelSize(width: 1600, height: 800))
+        XCTAssertFalse(item.usesTextCardLayout)
+        XCTAssertEqual(StorageManager.pixelSize(from: preview), ClipboardPixelSize(width: 800, height: 400))
+        XCTAssertTrue(item.tags.contains(.image))
+    }
+
+    func testStorageManagerSkipsImagePreviewForMultipleFilePayloads() throws {
+        let storageManager = StorageManager(rootDirectoryURL: makeTemporaryDirectory())
+        let directory = makeTemporaryDirectory()
+        let imageFileURL = directory.appendingPathComponent("Photo.png")
+        let textFileURL = directory.appendingPathComponent("Readme.txt")
+        try StorageManager.pngData(from: makeImage(size: NSSize(width: 40, height: 40), color: .systemPink)).write(to: imageFileURL)
+        FileManager.default.createFile(atPath: textFileURL.path, contents: Data("hello".utf8))
+
+        let item = try storageManager.store(payload: .fileURLs([imageFileURL, textFileURL]))
+
+        XCTAssertNil(item.imageFilename)
+        XCTAssertNil(item.pixelSize)
+        XCTAssertTrue(item.usesTextCardLayout)
+    }
+
     func testStorageManagerCategorizesVideoFilesAndSearchMatchesVideoTag() throws {
         let storageManager = StorageManager(rootDirectoryURL: makeTemporaryDirectory())
         let fileURL = makeTemporaryDirectory().appendingPathComponent("Trailer.mp4")

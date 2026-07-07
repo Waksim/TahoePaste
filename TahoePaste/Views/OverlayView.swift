@@ -1,9 +1,11 @@
 import SwiftUI
 
 struct OverlayView: View {
-    // Includes the search bubble and toolbar row; OverlayWindowController uses it
-    // to keep the window tall enough for the card row below.
+    // OverlayWindowController derives the window height from these: top bar
+    // plus one card row plus the bottom inset. The bar keeps 5 pt above and
+    // below its 26 pt icons, and bottomInset mirrors that gap under the cards.
     static let topBarHeight: CGFloat = 36
+    static let bottomInset: CGFloat = 5
 
     @ObservedObject var viewModel: ClipboardHistoryViewModel
     @ObservedObject var settingsManager: SettingsManager
@@ -61,9 +63,9 @@ struct OverlayView: View {
                                         .id(item.id)
                                     }
                                 }
-                                .frame(maxHeight: .infinity, alignment: .center)
-                                .padding(.vertical, cardRowVerticalPadding)
+                                .frame(maxHeight: .infinity, alignment: .top)
                             }
+                            .contentMargins(.horizontal, 16, for: .scrollContent)
                             .scrollClipDisabled()
                             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                             .onAppear {
@@ -210,17 +212,6 @@ struct OverlayView: View {
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-    }
-
-    private var cardRowVerticalPadding: CGFloat {
-        switch settingsManager.cardSizePreset {
-        case .compact:
-            return 8
-        case .comfortable:
-            return 12
-        case .large:
-            return 16
-        }
     }
 
     private func scrollToMostRecent(_ proxy: ScrollViewProxy, animated: Bool = true) {

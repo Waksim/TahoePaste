@@ -239,17 +239,6 @@ struct SettingsView: View {
                 Divider()
             }
 
-            VStack(alignment: .leading, spacing: 8) {
-                HStack {
-                    Text(L10n.tr("settings.overlay_height"))
-                    Spacer()
-                    Text(L10n.tr("unit.points", Int(settingsManager.overlayHeight.rounded())))
-                        .foregroundStyle(.secondary)
-                }
-
-                Slider(value: $settingsManager.overlayHeight, in: 220...360, step: 2)
-            }
-
             Picker(L10n.tr("settings.card_size"), selection: $settingsManager.cardSizePreset) {
                 ForEach(SettingsManager.CardSizePreset.allCases) { preset in
                     Text(preset.title).tag(preset)
