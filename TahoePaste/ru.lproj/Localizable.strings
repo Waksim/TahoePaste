@@ -57,7 +57,6 @@
 "settings.not_granted" = "Не выдан";
 "settings.open_login_items_settings" = "Открыть объекты входа";
 "settings.open_accessibility_settings" = "Открыть настройки универсального доступа";
-"settings.overlay_height" = "Высота панели";
 "settings.paste_delay" = "Задержка перед вставкой";
 "settings.pause_monitoring" = "Поставить мониторинг на паузу";
 "settings.reactivate_previous_app" = "Возвращать предыдущее приложение перед вставкой";

@@ -116,10 +116,9 @@ final class OverlayWindowController {
             return
         }
 
-        // Cards are centered vertically, so anything shorter than a card plus
-        // the top bar clips the card edges at the window bounds.
-        let minimumHeight = settingsManager.cardSizePreset.totalCardHeight + OverlayView.topBarHeight
-        let height = max(CGFloat(settingsManager.overlayHeight), minimumHeight)
+        let height = OverlayView.topBarHeight
+            + settingsManager.cardSizePreset.totalCardHeight
+            + OverlayView.bottomInset
         let frame = CGRect(
             x: visibleFrame.minX,
             y: visibleFrame.minY,

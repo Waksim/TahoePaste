@@ -125,6 +125,7 @@ final class StorageManager {
             )
         case .fileURLs(let fileURLs):
             let fileReferences = fileURLs.map(fileReference(for:))
+            let imagePreview = imageFilePreview(for: fileReferences)
 
             return ClipboardItem(
                 id: UUID(),
@@ -132,11 +133,44 @@ final class StorageManager {
                 createdAt: .now,
                 text: fileReferences.map(\.path).joined(separator: "\n"),
                 textPreview: nil,
-                imageFilename: nil,
-                pixelSize: nil,
+                imageFilename: imagePreview?.filename,
+                pixelSize: imagePreview?.pixelSize,
                 fileReferences: fileReferences
             )
         }
+    }
+
+    // A single copied image file gets a stored preview so its card can keep
+    // showing the picture even after the original file moves or is deleted.
+    private func imageFilePreview(
+        for fileReferences: [ClipboardFileReference]
+    ) -> (filename: String, pixelSize: ClipboardPixelSize)? {
+        guard
+            fileReferences.count == 1,
+            let reference = fileReferences.first,
+            reference.isDirectory == false,
+            reference.category == .image,
+            let image = NSImage(contentsOf: reference.url)
+        else {
+            return nil
+        }
+
+        let pixelSize = Self.pixelSize(from: image)
+        let downscaledImage = Self.downscaledImage(image, maxPixelDimension: Self.previewMaxPixelDimension)
+
+        guard let pngData = try? Self.pngData(from: downscaledImage) else {
+            return nil
+        }
+
+        let filename = "\(UUID().uuidString).png"
+
+        do {
+            try pngData.write(to: imagesDirectoryURL.appendingPathComponent(filename), options: [.atomic])
+        } catch {
+            return nil
+        }
+
+        return (filename, pixelSize)
     }
 
     func loadImage(for item: ClipboardItem) -> NSImage? {
@@ -268,6 +302,61 @@ final class StorageManager {
         }
 
         throw StorageError.invalidImageData
+    }
+
+    private static let previewMaxPixelDimension = 800.0
+
+    static func downscaledImage(_ image: NSImage, maxPixelDimension: Double) -> NSImage {
+        let originalSize = pixelSize(from: image)
+        let largestSide = max(originalSize.width, originalSize.height)
+
+        guard largestSide > maxPixelDimension, originalSize.width > 0, originalSize.height > 0 else {
+            return image
+        }
+
+        let scale = maxPixelDimension / largestSide
+        let targetWidth = max(Int((originalSize.width * scale).rounded()), 1)
+        let targetHeight = max(Int((originalSize.height * scale).rounded()), 1)
+
+        guard let bitmap = NSBitmapImageRep(
+            bitmapDataPlanes: nil,
+            pixelsWide: targetWidth,
+            pixelsHigh: targetHeight,
+            bitsPerSample: 8,
+            samplesPerPixel: 4,
+            hasAlpha: true,
+            isPlanar: false,
+            colorSpaceName: .deviceRGB,
+            bytesPerRow: 0,
+            bitsPerPixel: 0
+        ) else {
+            return image
+        }
+
+        bitmap.size = NSSize(width: targetWidth, height: targetHeight)
+
+        NSGraphicsContext.saveGraphicsState()
+        defer {
+            NSGraphicsContext.restoreGraphicsState()
+        }
+
+        guard let context = NSGraphicsContext(bitmapImageRep: bitmap) else {
+            return image
+        }
+
+        NSGraphicsContext.current = context
+        context.imageInterpolation = .high
+        image.draw(
+            in: NSRect(x: 0, y: 0, width: targetWidth, height: targetHeight),
+            from: .zero,
+            operation: .copy,
+            fraction: 1
+        )
+        context.flushGraphics()
+
+        let downscaled = NSImage(size: bitmap.size)
+        downscaled.addRepresentation(bitmap)
+        return downscaled
     }
 
     static func pixelSize(from image: NSImage) -> ClipboardPixelSize {

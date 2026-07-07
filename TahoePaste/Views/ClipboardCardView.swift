@@ -17,7 +17,9 @@ struct ClipboardCardView: View {
     }
 
     private var cardWidth: CGFloat {
-        item.isImage ? settingsManager.cardSizePreset.imageCardWidth : settingsManager.cardSizePreset.textCardWidth
+        item.usesImageCardLayout
+            ? settingsManager.cardSizePreset.imageCardWidth
+            : settingsManager.cardSizePreset.textCardWidth
     }
 
     private var cardHeight: CGFloat {
@@ -152,7 +154,7 @@ struct ClipboardCardView: View {
                     Text(L10n.tr(tag.titleKey))
                         .font(.system(size: 11, weight: .semibold, design: .rounded))
                         .foregroundStyle(
-                            item.isImage
+                            item.usesImageCardLayout
                                 ? themePalette.imageTagText.opacity(activeTagFilter == tag ? 0.96 : 0.88)
                                 : themePalette.cardTextTag.opacity(activeTagFilter == tag ? 0.96 : 0.78)
                         )
@@ -171,7 +173,7 @@ struct ClipboardCardView: View {
                 Text(metadataText)
                     .font(.system(size: 10, weight: .medium, design: .rounded))
                     .foregroundStyle(
-                        item.isImage
+                        item.usesImageCardLayout
                             ? themePalette.imageMetadataText.opacity(0.72)
                             : themePalette.cardTextMetadata.opacity(0.82)
                     )
@@ -184,7 +186,7 @@ struct ClipboardCardView: View {
                 Text(item.timestampText(locale: locale))
                     .font(.system(size: 10, weight: .medium, design: .rounded))
                     .foregroundStyle(
-                        item.isImage
+                        item.usesImageCardLayout
                             ? themePalette.imageMetadataText.opacity(0.72)
                             : themePalette.cardTextMetadata.opacity(0.76)
                     )

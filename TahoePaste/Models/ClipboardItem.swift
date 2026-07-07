@@ -389,7 +389,11 @@ struct ClipboardItem: Identifiable, Codable, Hashable {
     }
 
     var usesTextCardLayout: Bool {
-        isImage == false
+        isImage == false && imageFilename == nil
+    }
+
+    var usesImageCardLayout: Bool {
+        usesTextCardLayout == false
     }
 
     var characterCount: Int {

@@ -130,6 +130,11 @@ final class ClipboardHistoryViewModel: ObservableObject {
         }
 
         searchQuery.removeLast()
+
+        if searchQuery.isEmpty {
+            isSearchInterfaceVisible = false
+        }
+
         refreshVisibleItems(debounced: true)
     }
 

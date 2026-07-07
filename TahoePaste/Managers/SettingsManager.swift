@@ -304,17 +304,6 @@ final class SettingsManager: ObservableObject {
         didSet { persist(reactivatePreviousAppBeforePaste, forKey: Keys.reactivatePreviousAppBeforePaste) }
     }
 
-    @Published var overlayHeight: Double {
-        didSet {
-            let clampedValue = Self.clamp(overlayHeight, min: 220, max: 360)
-            guard overlayHeight == clampedValue else {
-                overlayHeight = clampedValue
-                return
-            }
-            persist(overlayHeight, forKey: Keys.overlayHeight)
-        }
-    }
-
     @Published var cardSizePreset: CardSizePreset {
         didSet { persist(cardSizePreset.rawValue, forKey: Keys.cardSizePreset) }
     }
@@ -398,11 +387,6 @@ final class SettingsManager: ObservableObject {
             max: 0.30
         )
         self.reactivatePreviousAppBeforePaste = defaults.object(forKey: Keys.reactivatePreviousAppBeforePaste) as? Bool ?? true
-        self.overlayHeight = Self.clamp(
-            defaults.object(forKey: Keys.overlayHeight) as? Double ?? 260,
-            min: 220,
-            max: 360
-        )
         self.cardSizePreset = CardSizePreset(rawValue: defaults.string(forKey: Keys.cardSizePreset) ?? "") ?? .comfortable
         self.showTimestampsOnCards = defaults.object(forKey: Keys.showTimestampsOnCards) as? Bool ?? true
         self.showMetadataOnCards = defaults.object(forKey: Keys.showMetadataOnCards) as? Bool ?? true
@@ -699,7 +683,6 @@ private enum Keys {
     static let autoPasteAfterSelection = "TahoePasteAutoPasteAfterSelection"
     static let pasteDelay = "TahoePastePasteDelay"
     static let reactivatePreviousAppBeforePaste = "TahoePasteReactivatePreviousAppBeforePaste"
-    static let overlayHeight = "TahoePasteOverlayHeight"
     static let cardSizePreset = "TahoePasteCardSizePreset"
     static let showTimestampsOnCards = "TahoePasteShowTimestampsOnCards"
     static let showMetadataOnCards = "TahoePasteShowMetadataOnCards"
