@@ -12,6 +12,11 @@ namespace TahoePaste.Windows.Views;
 
 public sealed class ClipboardCardControl : Border
 {
+    // Vertical room the top chrome row (tags + metadata) occupies; the text
+    // card body starts below it so the preview never sits under the chrome.
+    private const double TopRowReservedHeight = 24;
+    private const double DeleteButtonSize = 22;
+
     private readonly ClipboardItem _item;
 
     public ClipboardCardControl(
@@ -22,16 +27,16 @@ public sealed class ClipboardCardControl : Border
     {
         _item = item;
         var palette = ThemePalette.For(settings.ActiveTheme);
-        var metrics = CardMetrics.For(settings.CardSizePreset);
+        var layout = settings.OverlayLayout;
 
-        Width = metrics.TotalCardWidth;
-        Height = metrics.TotalCardHeight;
+        Width = item.UsesImageCardLayout ? layout.TotalImageCardWidth : layout.TotalTextCardWidth;
+        Height = layout.TotalCardHeight;
         CornerRadius = new CornerRadius(Math.Max(settings.CornerRadiusIntensity, 10));
         ClipToBounds = true;
         Background = Gradient(palette.CardGradientTop, palette.CardGradientBottom);
         BorderBrush = palette.CardBorder;
         BorderThickness = new Thickness(1);
-        Margin = new Thickness(0, 0, 16, 0);
+        Margin = new Thickness(0, 0, layout.CardSpacing, 0);
         Effect = new System.Windows.Media.Effects.DropShadowEffect
         {
             BlurRadius = 12,
@@ -40,9 +45,9 @@ public sealed class ClipboardCardControl : Border
         };
         Cursor = Cursors.Hand;
 
-        Child = item.IsImage
-            ? BuildImageCard(item, image, settings, palette, metrics, activeTagFilter)
-            : BuildTextCard(item, settings, palette, metrics, activeTagFilter);
+        Child = item.UsesImageCardLayout
+            ? BuildImageCard(item, image, settings, palette, layout, activeTagFilter)
+            : BuildTextCard(item, settings, palette, layout, activeTagFilter);
 
         MouseLeftButtonUp += (_, args) =>
         {
@@ -63,30 +68,30 @@ public sealed class ClipboardCardControl : Border
         ClipboardItem item,
         AppSettings settings,
         ThemePalette palette,
-        CardMetrics metrics,
+        OverlayLayout layout,
         ClipboardTag? activeTagFilter)
     {
         var grid = RootGrid();
+        var padding = layout.ContentPadding;
         var body = new StackPanel
         {
-            Margin = new Thickness(metrics.Padding, metrics.Padding, metrics.Padding, metrics.Padding * 0.55)
+            Margin = new Thickness(padding, padding, padding, padding * 0.55)
         };
 
-        body.Children.Add(Header(item, settings, palette, item.MetadataText(settings.AppLanguage.Culture()), isImage: false));
         body.Children.Add(new TextBlock
         {
             Text = item.DisplayPreviewText,
             FontFamily = new FontFamily(item.IsCode ? "Cascadia Mono, Consolas" : "Segoe UI Variable, Segoe UI"),
-            FontSize = item.IsCode ? metrics.TextFontSize - 1 : metrics.TextFontSize,
+            FontSize = item.IsCode ? TextFontSize(settings) - 1 : TextFontSize(settings),
             FontWeight = FontWeights.Medium,
             Foreground = item.IsLink ? palette.CardLinkText : palette.CardPrimaryText,
             TextWrapping = TextWrapping.Wrap,
             TextTrimming = TextTrimming.CharacterEllipsis,
-            Margin = new Thickness(0, 8, 24, 0)
+            Margin = new Thickness(0, TopRowReservedHeight, 24, 0)
         });
 
         grid.Children.Add(body);
-        AddChrome(grid, item, palette, metrics, activeTagFilter, isImage: false);
+        AddChrome(grid, item, settings, palette, layout, activeTagFilter, isImage: false);
         return grid;
     }
 
@@ -95,7 +100,7 @@ public sealed class ClipboardCardControl : Border
         BitmapImage? image,
         AppSettings settings,
         ThemePalette palette,
-        CardMetrics metrics,
+        OverlayLayout layout,
         ClipboardTag? activeTagFilter)
     {
         var grid = RootGrid();
@@ -132,45 +137,21 @@ public sealed class ClipboardCardControl : Border
                 new Point(0, 1))
         });
 
-        var header = Header(item, settings, palette, item.MetadataText(settings.AppLanguage.Culture()), isImage: true);
-        header.Margin = new Thickness(metrics.Padding, 12, metrics.Padding + 24, 0);
-        header.VerticalAlignment = VerticalAlignment.Top;
-        grid.Children.Add(header);
-
-        AddChrome(grid, item, palette, metrics, activeTagFilter, isImage: true);
+        AddChrome(grid, item, settings, palette, layout, activeTagFilter, isImage: true);
         return grid;
     }
+
+    private static double TextFontSize(AppSettings settings) => settings.CardSizePreset switch
+    {
+        CardSizePreset.Compact => 15,
+        CardSizePreset.Large => 18,
+        _ => 17
+    };
 
     private static Grid RootGrid() => new()
     {
         ClipToBounds = true
     };
-
-    private static FrameworkElement Header(
-        ClipboardItem item,
-        AppSettings settings,
-        ThemePalette palette,
-        string? metadataText,
-        bool isImage)
-    {
-        var panel = new StackPanel
-        {
-            Orientation = Orientation.Horizontal,
-            HorizontalAlignment = HorizontalAlignment.Right
-        };
-
-        if (settings.ShowMetadataOnCards && string.IsNullOrEmpty(metadataText) == false)
-        {
-            panel.Children.Add(SmallMetaText(metadataText, isImage ? palette.ImageMetadataText : palette.CardTextMetadata));
-        }
-
-        if (settings.ShowTimestampsOnCards)
-        {
-            panel.Children.Add(SmallMetaText(item.TimestampText(settings.AppLanguage.Culture()), isImage ? palette.ImageMetadataText : palette.CardTextMetadata));
-        }
-
-        return panel;
-    }
 
     private static TextBlock SmallMetaText(string text, Brush foreground) => new()
     {
@@ -179,23 +160,42 @@ public sealed class ClipboardCardControl : Border
         FontSize = 10,
         FontWeight = FontWeights.Medium,
         Margin = new Thickness(8, 0, 0, 0),
-        TextTrimming = TextTrimming.CharacterEllipsis
+        TextTrimming = TextTrimming.CharacterEllipsis,
+        VerticalAlignment = VerticalAlignment.Center,
+        IsHitTestVisible = false
     };
 
+    // Tags and metadata share one row so they truncate instead of overlapping
+    // when both sides are long: tags take the leftover star column and clip
+    // first, metadata and timestamp keep their measured width.
     private void AddChrome(
         Grid grid,
         ClipboardItem item,
+        AppSettings settings,
         ThemePalette palette,
-        CardMetrics metrics,
+        OverlayLayout layout,
         ClipboardTag? activeTagFilter,
         bool isImage)
     {
+        var inset = Math.Max(layout.ContentPadding - 6, 8);
+        var deleteInset = Math.Max(layout.ContentPadding - 7, 8);
+
+        var topRow = new Grid
+        {
+            VerticalAlignment = VerticalAlignment.Top,
+            Height = TopRowReservedHeight,
+            Margin = new Thickness(inset, inset, deleteInset + DeleteButtonSize, 0)
+        };
+        topRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        topRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        topRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+
         var tagPanel = new StackPanel
         {
             Orientation = Orientation.Horizontal,
             HorizontalAlignment = HorizontalAlignment.Left,
-            VerticalAlignment = VerticalAlignment.Top,
-            Margin = new Thickness(Math.Max(metrics.Padding - 6, 8), Math.Max(metrics.Padding - 6, 8), 0, 0)
+            VerticalAlignment = VerticalAlignment.Center,
+            ClipToBounds = true
         };
 
         foreach (var tag in item.DisplayTags)
@@ -210,14 +210,34 @@ public sealed class ClipboardCardControl : Border
             tagPanel.Children.Add(tagButton);
         }
 
-        grid.Children.Add(tagPanel);
+        Grid.SetColumn(tagPanel, 0);
+        topRow.Children.Add(tagPanel);
+
+        var metadataText = item.MetadataText(settings.AppLanguage.Culture());
+        if (settings.ShowMetadataOnCards && string.IsNullOrEmpty(metadataText) == false)
+        {
+            var metadata = SmallMetaText(metadataText, isImage ? palette.ImageMetadataText : palette.CardTextMetadata);
+            Grid.SetColumn(metadata, 1);
+            topRow.Children.Add(metadata);
+        }
+
+        if (settings.ShowTimestampsOnCards)
+        {
+            var timestamp = SmallMetaText(
+                item.TimestampText(settings.AppLanguage.Culture()),
+                isImage ? palette.ImageMetadataText : palette.CardTextMetadata);
+            Grid.SetColumn(timestamp, 2);
+            topRow.Children.Add(timestamp);
+        }
+
+        grid.Children.Add(topRow);
 
         var deleteButton = ChromeButton("x", isImage ? Brushes.White : palette.CardDeleteIcon);
-        deleteButton.Width = 22;
-        deleteButton.Height = 22;
+        deleteButton.Width = DeleteButtonSize;
+        deleteButton.Height = DeleteButtonSize;
         deleteButton.HorizontalAlignment = HorizontalAlignment.Right;
         deleteButton.VerticalAlignment = VerticalAlignment.Top;
-        deleteButton.Margin = new Thickness(0, Math.Max(metrics.Padding - 7, 8), Math.Max(metrics.Padding - 7, 8), 0);
+        deleteButton.Margin = new Thickness(0, deleteInset, deleteInset, 0);
         deleteButton.Click += (_, args) =>
         {
             args.Handled = true;
@@ -266,22 +286,5 @@ public sealed class ClipboardCardControl : Border
         }
 
         return false;
-    }
-
-    private sealed record CardMetrics(
-        double CardWidth,
-        double CardHeight,
-        double Padding,
-        double TextFontSize)
-    {
-        public double TotalCardWidth => CardWidth + Padding * 2;
-        public double TotalCardHeight => CardHeight + Padding * 2;
-
-        public static CardMetrics For(CardSizePreset preset) => preset switch
-        {
-            CardSizePreset.Compact => new CardMetrics(252, 148, 14, 15),
-            CardSizePreset.Large => new CardMetrics(320, 188, 18, 18),
-            _ => new CardMetrics(280, 164, 16, 17)
-        };
     }
 }

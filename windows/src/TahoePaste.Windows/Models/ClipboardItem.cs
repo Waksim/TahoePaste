@@ -32,7 +32,10 @@ public sealed record ClipboardItem(
     public bool IsFile => Kind == ClipboardKind.File;
 
     [JsonIgnore]
-    public bool UsesTextCardLayout => IsImage == false;
+    public bool UsesTextCardLayout => IsImage == false && string.IsNullOrEmpty(ImageFilename);
+
+    [JsonIgnore]
+    public bool UsesImageCardLayout => UsesTextCardLayout == false;
 
     [JsonIgnore]
     public int CharacterCount => Text?.Length ?? 0;

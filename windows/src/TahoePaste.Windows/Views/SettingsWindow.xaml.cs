@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using Forms = System.Windows.Forms;
 using TahoePaste.Windows.Localization;
 using TahoePaste.Windows.Services;
 using TahoePaste.Windows.ViewModels;
@@ -16,7 +17,10 @@ public partial class SettingsWindow : Window
     private readonly ClipboardHistoryViewModel _viewModel;
     private readonly AppSettings _settings;
     private readonly StartupService _startupService;
+    private readonly List<LayoutSliderRow> _layoutSliderRows = [];
+    private readonly List<(string TitleKey, TextBlock Header)> _layoutGroupHeaders = [];
     private bool _isRefreshing;
+    private double? _lastOverlayFootprint;
 
     public SettingsWindow(ClipboardHistoryViewModel viewModel, AppSettings settings, StartupService startupService)
     {
@@ -41,6 +45,8 @@ public partial class SettingsWindow : Window
 
     private void PopulateOptions()
     {
+        BuildLayoutSliders();
+
         if (LanguageCombo.Items.Count > 0)
         {
             return;
@@ -49,6 +55,93 @@ public partial class SettingsWindow : Window
         LanguageCombo.ItemsSource = Enum.GetValues<AppLanguage>().Select(language => new Option<AppLanguage>(language, language.DisplayName())).ToArray();
         ThemeModeCombo.ItemsSource = Enum.GetValues<TahoeThemeMode>().Select(mode => new Option<TahoeThemeMode>(mode, ThemeModeTitle(mode))).ToArray();
         CardSizeCombo.ItemsSource = Enum.GetValues<CardSizePreset>().Select(preset => new Option<CardSizePreset>(preset, CardSizeTitle(preset))).ToArray();
+    }
+
+    // The 18 manual layout sliders share one visual pattern, so they are built
+    // here from descriptors instead of 18 near-identical XAML blocks.
+    private void BuildLayoutSliders()
+    {
+        if (_layoutSliderRows.Count > 0)
+        {
+            return;
+        }
+
+        AddLayoutGroup("settings.layout_group_overlay");
+        AddLayoutSlider("settings.layout_overlay_height", 160, 600, () => _settings.ManualOverlayHeight, value => _settings.ManualOverlayHeight = value);
+        AddLayoutSlider("settings.layout_overlay_horizontal_inset", 0, 400, () => _settings.ManualOverlayScreenHorizontalInset, value => _settings.ManualOverlayScreenHorizontalInset = value);
+        AddLayoutSlider("settings.layout_overlay_bottom_inset", 0, 300, () => _settings.ManualOverlayScreenBottomInset, value => _settings.ManualOverlayScreenBottomInset = value);
+
+        AddLayoutGroup("settings.layout_group_top_bar");
+        AddLayoutSlider("settings.layout_top_bar_height", 20, 56, () => _settings.ManualTopBarHeight, value => _settings.ManualTopBarHeight = value);
+        AddLayoutSlider("settings.layout_toolbar_icon_size", 8, 20, () => _settings.ManualToolbarIconSize, value => _settings.ManualToolbarIconSize = value);
+        AddLayoutSlider("settings.layout_toolbar_icon_padding", 0, 12, () => _settings.ManualToolbarIconPadding, value => _settings.ManualToolbarIconPadding = value);
+        AddLayoutSlider("settings.layout_toolbar_icon_spacing", 0, 24, () => _settings.ManualToolbarIconSpacing, value => _settings.ManualToolbarIconSpacing = value);
+        AddLayoutSlider("settings.layout_toolbar_vertical_offset", -16, 24, () => _settings.ManualToolbarVerticalOffset, value => _settings.ManualToolbarVerticalOffset = value);
+
+        AddLayoutGroup("settings.layout_group_search");
+        AddLayoutSlider("settings.layout_search_bubble_width", 240, 800, () => _settings.ManualSearchBubbleWidth, value => _settings.ManualSearchBubbleWidth = value);
+        AddLayoutSlider("settings.layout_search_bubble_height", 22, 48, () => _settings.ManualSearchBubbleHeight, value => _settings.ManualSearchBubbleHeight = value);
+        AddLayoutSlider("settings.layout_search_bubble_horizontal_offset", -200, 200, () => _settings.ManualSearchBubbleHorizontalOffset, value => _settings.ManualSearchBubbleHorizontalOffset = value);
+        AddLayoutSlider("settings.layout_search_bubble_vertical_offset", -16, 24, () => _settings.ManualSearchBubbleVerticalOffset, value => _settings.ManualSearchBubbleVerticalOffset = value);
+
+        AddLayoutGroup("settings.layout_group_cards");
+        AddLayoutSlider("settings.layout_card_spacing", 4, 40, () => _settings.ManualCardSpacing, value => _settings.ManualCardSpacing = value);
+        AddLayoutSlider("settings.layout_card_padding", 8, 32, () => _settings.ManualCardContentPadding, value => _settings.ManualCardContentPadding = value);
+        AddLayoutSlider("settings.layout_card_height", 120, 280, () => _settings.ManualCardHeight, value => _settings.ManualCardHeight = value);
+        AddLayoutSlider("settings.layout_text_card_width", 200, 420, () => _settings.ManualTextCardWidth, value => _settings.ManualTextCardWidth = value);
+        AddLayoutSlider("settings.layout_image_card_width", 160, 340, () => _settings.ManualImageCardWidth, value => _settings.ManualImageCardWidth = value);
+        AddLayoutSlider("settings.layout_bottom_inset", 0, 56, () => _settings.ManualBottomInset, value => _settings.ManualBottomInset = value);
+    }
+
+    private void AddLayoutGroup(string titleKey)
+    {
+        var header = new TextBlock
+        {
+            FontSize = 11,
+            FontWeight = FontWeights.SemiBold,
+            Margin = new Thickness(0, 14, 0, 0)
+        };
+        header.SetResourceReference(TextBlock.ForegroundProperty, SystemColors.GrayTextBrushKey);
+        LayoutSlidersPanel.Children.Add(header);
+        _layoutGroupHeaders.Add((titleKey, header));
+    }
+
+    private void AddLayoutSlider(string titleKey, double minimum, double maximum, Func<double> get, Action<double> set)
+    {
+        var label = new TextBlock { VerticalAlignment = VerticalAlignment.Center };
+        DockPanel.SetDock(label, Dock.Left);
+
+        var valueText = new TextBlock
+        {
+            VerticalAlignment = VerticalAlignment.Center,
+            TextAlignment = TextAlignment.Right
+        };
+
+        var header = new DockPanel { Margin = new Thickness(0, 10, 0, 0) };
+        header.Children.Add(label);
+        header.Children.Add(valueText);
+
+        var slider = new Slider
+        {
+            Minimum = minimum,
+            Maximum = maximum,
+            TickFrequency = 1,
+            IsSnapToTickEnabled = true
+        };
+        slider.ValueChanged += (_, _) =>
+        {
+            if (_isRefreshing)
+            {
+                return;
+            }
+
+            set(slider.Value);
+            valueText.Text = L10n.Tr("unit.points", (int)Math.Round(get()));
+        };
+
+        LayoutSlidersPanel.Children.Add(header);
+        LayoutSlidersPanel.Children.Add(slider);
+        _layoutSliderRows.Add(new LayoutSliderRow(titleKey, label, slider, valueText, get));
     }
 
     private void RefreshAll()
@@ -100,8 +193,20 @@ public partial class SettingsWindow : Window
         DayThemeStartsLabel.Text = L10n.Tr("settings.day_theme_starts");
         NightThemeStartsLabel.Text = L10n.Tr("settings.night_theme_starts");
         ThemeScheduleHelp.Text = L10n.Tr("settings.theme_schedule_help");
-        OverlayHeightLabel.Text = L10n.Tr("settings.overlay_height");
         CardSizeLabel.Text = L10n.Tr("settings.card_size");
+        AutoLayoutCheck.Content = L10n.Tr("settings.auto_layout");
+        AutoLayoutHelp.Text = L10n.Tr("settings.auto_layout_help");
+
+        foreach (var (titleKey, header) in _layoutGroupHeaders)
+        {
+            header.Text = L10n.Tr(titleKey).ToUpper(L10n.Language.Culture());
+        }
+
+        foreach (var row in _layoutSliderRows)
+        {
+            row.Label.Text = L10n.Tr(row.TitleKey);
+        }
+
         ShowTimestampsCheck.Content = L10n.Tr("settings.show_timestamps");
         ShowMetadataCheck.Content = L10n.Tr("settings.show_metadata");
         CornerRadiusLabel.Text = L10n.Tr("settings.corner_radius");
@@ -144,8 +249,16 @@ public partial class SettingsWindow : Window
         NightThemeStartText.Text = AppSettings.TimeText(_settings.NightThemeStartMinutes);
         DayThemeStartText.IsEnabled = _settings.ThemeMode == TahoeThemeMode.Scheduled;
         NightThemeStartText.IsEnabled = _settings.ThemeMode == TahoeThemeMode.Scheduled;
-        OverlayHeightSlider.Value = _settings.OverlayHeight;
-        OverlayHeightValue.Text = L10n.Tr("unit.points", (int)Math.Round(_settings.OverlayHeight));
+        AutoLayoutCheck.IsChecked = _settings.UseAutomaticOverlayLayout;
+        CardSizeCombo.IsEnabled = _settings.UseAutomaticOverlayLayout;
+        LayoutSlidersPanel.Visibility = _settings.UseAutomaticOverlayLayout ? Visibility.Collapsed : Visibility.Visible;
+
+        foreach (var row in _layoutSliderRows)
+        {
+            row.Slider.Value = row.Get();
+            row.Value.Text = L10n.Tr("unit.points", (int)Math.Round(row.Get()));
+        }
+
         ShowTimestampsCheck.IsChecked = _settings.ShowTimestampsOnCards;
         ShowMetadataCheck.IsChecked = _settings.ShowMetadataOnCards;
         CornerRadiusSlider.Value = _settings.CornerRadiusIntensity;
@@ -162,6 +275,57 @@ public partial class SettingsWindow : Window
         {
             RefreshAll();
         }
+
+        RepositionIfOverlayFootprintChanged();
+    }
+
+    private double OverlayFootprint
+    {
+        get
+        {
+            var layout = _settings.OverlayLayout;
+            return layout.OverlayHeight + layout.OverlayScreenBottomInset;
+        }
+    }
+
+    // Overlay geometry changes live while its sliders are dragged; keep the
+    // settings window clear of the preview, but only move it when the
+    // footprint actually changed so unrelated settings don't fight a
+    // manually placed window.
+    private void RepositionIfOverlayFootprintChanged()
+    {
+        if (IsVisible && OverlayFootprint != _lastOverlayFootprint)
+        {
+            PositionAtTopCenter();
+        }
+    }
+
+    public void PositionAtTopCenter()
+    {
+        var screen = Forms.Screen.FromPoint(Forms.Cursor.Position);
+        var area = screen.WorkingArea;
+        var dpiScale = CurrentDpiScale();
+        var screenLeft = area.Left / dpiScale.X;
+        var screenTop = area.Top / dpiScale.Y;
+        var screenWidth = area.Width / dpiScale.X;
+        var screenHeight = area.Height / dpiScale.Y;
+
+        var occupiedByOverlay = OverlayFootprint;
+        _lastOverlayFootprint = occupiedByOverlay;
+        // Extreme overlay sliders can eat the whole screen; never collapse
+        // below a usable height — overlapping the preview beats vanishing.
+        var height = Math.Max(420, Math.Min(780, screenHeight - occupiedByOverlay - 24));
+        var width = double.IsNaN(Width) ? MinWidth : Width;
+
+        Height = height;
+        Left = screenLeft + (screenWidth - width) / 2;
+        Top = screenTop;
+    }
+
+    private static System.Windows.Point CurrentDpiScale()
+    {
+        using var graphics = System.Drawing.Graphics.FromHwnd(IntPtr.Zero);
+        return new System.Windows.Point(graphics.DpiX / 96.0, graphics.DpiY / 96.0);
     }
 
     private void OnViewModelChanged(object? sender, PropertyChangedEventArgs e)
@@ -286,11 +450,11 @@ public partial class SettingsWindow : Window
         }
     }
 
-    private void OnOverlayHeightChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    private void OnAutoLayoutChanged(object sender, RoutedEventArgs e)
     {
         if (_isRefreshing == false)
         {
-            _settings.OverlayHeight = OverlayHeightSlider.Value;
+            _settings.UseAutomaticOverlayLayout = AutoLayoutCheck.IsChecked == true;
         }
     }
 
@@ -414,4 +578,11 @@ public partial class SettingsWindow : Window
     {
         public override string ToString() => Label;
     }
+
+    private sealed record LayoutSliderRow(
+        string TitleKey,
+        TextBlock Label,
+        Slider Slider,
+        TextBlock Value,
+        Func<double> Get);
 }

@@ -1,0 +1,34 @@
+name: Windows Build Check
+
+# Compile-only check for the Windows app. The release workflow only runs on
+# tags, and the WPF target cannot be built on macOS, so branch work needs a
+# way to verify the Windows project still compiles.
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "windows/**"
+      - ".github/workflows/windows-build.yml"
+
+env:
+  DOTNET_VERSION: "10.0.x"
+  WINDOWS_PROJECT: windows/src/TahoePaste.Windows/TahoePaste.Windows.csproj
+
+jobs:
+  build:
+    name: Build Windows x64
+    runs-on: windows-2025
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore
+        run: dotnet restore $env:WINDOWS_PROJECT -r win-x64
+
+      - name: Build
+        run: dotnet build $env:WINDOWS_PROJECT -c Release -r win-x64 --self-contained true --no-restore
