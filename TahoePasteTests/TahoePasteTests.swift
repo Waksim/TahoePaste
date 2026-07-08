@@ -181,6 +181,29 @@ final class TahoePasteTests: XCTestCase {
         XCTAssertEqual(AppLanguage.bestMatch(for: ["fr-FR"]), .english)
     }
 
+    func testAutomaticOverlayLayoutFollowsCardSizePreset() {
+        for preset in SettingsManager.CardSizePreset.allCases {
+            let layout = SettingsManager.OverlayLayout.automatic(for: preset)
+
+            XCTAssertEqual(layout.topBarHeight, 31)
+            XCTAssertEqual(layout.bottomInset, 31)
+            XCTAssertEqual(layout.cardSpacing, 16)
+            XCTAssertEqual(layout.toolbarIconSize, 10)
+            XCTAssertEqual(layout.toolbarIconPadding, 4)
+            XCTAssertEqual(layout.toolbarIconSpacing, 8)
+            XCTAssertEqual(layout.toolbarVerticalOffset, 0)
+            XCTAssertEqual(layout.searchBubbleWidth, 480)
+            XCTAssertEqual(layout.searchBubbleHeight, 30)
+            XCTAssertEqual(layout.searchBubbleHorizontalOffset, 0)
+            XCTAssertEqual(layout.searchBubbleVerticalOffset, 0)
+            XCTAssertEqual(layout.contentPadding, preset.contentPadding)
+            XCTAssertEqual(layout.totalCardHeight, preset.cardHeight + preset.contentPadding * 2)
+            XCTAssertEqual(layout.overlayHeight, 31 + preset.cardHeight + preset.contentPadding * 2 + 31)
+            XCTAssertEqual(layout.overlayScreenHorizontalInset, 0)
+            XCTAssertEqual(layout.overlayScreenBottomInset, 0)
+        }
+    }
+
     func testMaximumHistoryItemsSupportsUnlimitedAndFiniteBounds() {
         XCTAssertEqual(SettingsManager.normalizedMaximumHistoryItems(0), 0)
         XCTAssertEqual(SettingsManager.normalizedMaximumHistoryItems(-50), 0)
@@ -486,6 +509,65 @@ final class TahoePasteTests: XCTestCase {
         viewModel.clearSearch()
         await viewModel.waitForPendingSearchWork()
         XCTAssertEqual(viewModel.visibleItems.map(\.id), [apple.id, cherry.id])
+    }
+
+    @MainActor
+    func testOverlaySessionAnchorSurvivesPresentationReset() {
+        let viewModel = ClipboardHistoryViewModel(
+            storageManager: StorageManager(rootDirectoryURL: makeTemporaryDirectory()),
+            settingsManager: SettingsManager.shared
+        )
+
+        let apple = makeTextItem("Apple pie recipe")
+        let banana = makeTextItem("Banana split", age: -1)
+        let cherry = makeTextItem("Cherry cake", age: -2)
+        viewModel.replaceHistory(with: [apple, banana, cherry])
+
+        viewModel.currentScrollAnchorID = cherry.id
+        viewModel.captureSessionAnchor()
+
+        let previousPresentationID = viewModel.overlayPresentationID
+        viewModel.prepareForOverlayPresentation()
+        XCTAssertNotEqual(viewModel.overlayPresentationID, previousPresentationID)
+        XCTAssertEqual(viewModel.sessionReturnTargetID, cherry.id)
+
+        viewModel.currentScrollAnchorID = apple.id
+        viewModel.captureSessionAnchor()
+        XCTAssertNil(viewModel.sessionReturnTargetID)
+
+        viewModel.currentScrollAnchorID = cherry.id
+        viewModel.captureSessionAnchor()
+        viewModel.replaceHistory(with: [apple, banana])
+        XCTAssertNil(viewModel.sessionReturnTargetID)
+    }
+
+    @MainActor
+    func testOverlayWindowControllerResetsOnShowAndCapturesAnchorOnHide() {
+        let viewModel = ClipboardHistoryViewModel(
+            storageManager: StorageManager(rootDirectoryURL: makeTemporaryDirectory()),
+            settingsManager: SettingsManager.shared
+        )
+        let controller = OverlayWindowController(
+            viewModel: viewModel,
+            settingsManager: SettingsManager.shared
+        )
+
+        let apple = makeTextItem("Apple pie recipe")
+        let banana = makeTextItem("Banana split", age: -1)
+        viewModel.replaceHistory(with: [apple, banana])
+
+        let previousPresentationID = viewModel.overlayPresentationID
+        controller.show(on: nil)
+        XCTAssertNotEqual(viewModel.overlayPresentationID, previousPresentationID)
+
+        viewModel.currentScrollAnchorID = banana.id
+        controller.hide()
+        XCTAssertEqual(viewModel.lastSessionAnchorID, banana.id)
+
+        controller.showPreview(on: nil)
+        viewModel.currentScrollAnchorID = apple.id
+        controller.hide()
+        XCTAssertEqual(viewModel.lastSessionAnchorID, banana.id)
     }
 
     func testSingleCharacterSearchOverLargeHistoryStaysFast() {

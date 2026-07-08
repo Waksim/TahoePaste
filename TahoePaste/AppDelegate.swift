@@ -82,8 +82,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func openSettingsWindow() {
-        hideOverlay()
         settingsWindowController.showWindowAndActivate()
+        overlayWindowController.fallsBackToPreview = true
+        overlayWindowController.showPreview(on: settingsWindowController.window?.screen)
+        // Keep the search bubble visible in the preview so its layout
+        // sliders have something to act on.
+        historyViewModel.beginSearch()
         DispatchQueue.main.async { [weak self] in
             guard let self else {
                 return
@@ -128,6 +132,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         historyViewModel.onQuit = {
             NSApplication.shared.terminate(nil)
+        }
+
+        settingsWindowController.onWindowWillClose = { [weak self] in
+            guard let self else {
+                return
+            }
+
+            self.overlayWindowController.fallsBackToPreview = false
+            if self.overlayWindowController.isPreview {
+                self.overlayWindowController.hide()
+            }
+            self.historyViewModel.dismissSearchInterface()
         }
     }
 
@@ -196,8 +212,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
             .store(in: &cancellables)
 
-        settingsManager.$cardSizePreset
-            .dropFirst()
+        // Any settings change may affect the overlay geometry; the refresh is
+        // a cheap guarded setFrame, so react to all of them for live tuning.
+        settingsManager.objectWillChange
+            .receive(on: RunLoop.main)
             .sink { [weak self] _ in
                 self?.overlayWindowController.refreshLayoutIfVisible()
             }
@@ -257,7 +275,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func toggleOverlay() {
-        if overlayWindowController.isVisible {
+        // A preview counts as "not shown": the hotkey upgrades it to the
+        // interactive overlay instead of toggling it away.
+        if overlayWindowController.isVisible, overlayWindowController.isPreview == false {
             hideOverlay()
             return
         }

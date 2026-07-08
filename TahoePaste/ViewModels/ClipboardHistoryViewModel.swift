@@ -14,6 +14,12 @@ final class ClipboardHistoryViewModel: ObservableObject {
     @Published private(set) var storageUsageLabel: String
     @Published private(set) var overlayPresentationID = UUID()
 
+    // Scroll anchors stay plain vars: the current one changes on every card
+    // boundary while scrolling and must not trigger view invalidation; the
+    // session one is only read when overlayPresentationID republishes.
+    var currentScrollAnchorID: UUID?
+    private(set) var lastSessionAnchorID: UUID?
+
     var onSelectItem: ((ClipboardItem) -> Void)?
     var onDeleteItem: ((ClipboardItem) -> Void)?
     var onShowOverlay: (() -> Void)?
@@ -207,9 +213,30 @@ final class ClipboardHistoryViewModel: ObservableObject {
         onDeleteItem?(item)
     }
 
-    func showOverlay() {
+    // The anchor from the previous interactive session, if jumping back to it
+    // still makes sense: the item must survive in the current visible list and
+    // differ from the leading one (returning to the start is a no-op).
+    var sessionReturnTargetID: UUID? {
+        guard let lastSessionAnchorID,
+              lastSessionAnchorID != visibleItems.first?.id,
+              visibleItems.contains(where: { $0.id == lastSessionAnchorID })
+        else {
+            return nil
+        }
+
+        return lastSessionAnchorID
+    }
+
+    func captureSessionAnchor() {
+        lastSessionAnchorID = currentScrollAnchorID
+    }
+
+    func prepareForOverlayPresentation() {
         clearTransientState()
         overlayPresentationID = UUID()
+    }
+
+    func showOverlay() {
         onShowOverlay?()
     }
 

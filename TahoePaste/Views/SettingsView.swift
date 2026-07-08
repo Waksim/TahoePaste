@@ -22,7 +22,7 @@ struct SettingsView: View {
             }
             .padding(24)
         }
-        .frame(width: 700, height: 760)
+        .frame(width: 700)
         .background(Color(nsColor: .windowBackgroundColor))
         .preferredColorScheme(settingsManager.preferredColorScheme)
         .confirmationDialog(
@@ -245,6 +245,46 @@ struct SettingsView: View {
                 }
             }
             .pickerStyle(.segmented)
+            .disabled(settingsManager.useAutomaticOverlayLayout == false)
+
+            Toggle(L10n.tr("settings.auto_layout"), isOn: $settingsManager.useAutomaticOverlayLayout)
+
+            Text(L10n.tr("settings.auto_layout_help"))
+                .font(.system(size: 11, weight: .medium, design: .rounded))
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+
+            if settingsManager.useAutomaticOverlayLayout == false {
+                layoutGroup("settings.layout_group_overlay") {
+                    layoutSlider("settings.layout_overlay_height", value: $settingsManager.manualOverlayHeight, range: 160...600)
+                    layoutSlider("settings.layout_overlay_horizontal_inset", value: $settingsManager.manualOverlayScreenHorizontalInset, range: 0...400)
+                    layoutSlider("settings.layout_overlay_bottom_inset", value: $settingsManager.manualOverlayScreenBottomInset, range: 0...300)
+                }
+
+                layoutGroup("settings.layout_group_top_bar") {
+                    layoutSlider("settings.layout_top_bar_height", value: $settingsManager.manualTopBarHeight, range: 20...56)
+                    layoutSlider("settings.layout_toolbar_icon_size", value: $settingsManager.manualToolbarIconSize, range: 8...20)
+                    layoutSlider("settings.layout_toolbar_icon_padding", value: $settingsManager.manualToolbarIconPadding, range: 0...12)
+                    layoutSlider("settings.layout_toolbar_icon_spacing", value: $settingsManager.manualToolbarIconSpacing, range: 0...24)
+                    layoutSlider("settings.layout_toolbar_vertical_offset", value: $settingsManager.manualToolbarVerticalOffset, range: -16...24)
+                }
+
+                layoutGroup("settings.layout_group_search") {
+                    layoutSlider("settings.layout_search_bubble_width", value: $settingsManager.manualSearchBubbleWidth, range: 240...800)
+                    layoutSlider("settings.layout_search_bubble_height", value: $settingsManager.manualSearchBubbleHeight, range: 22...48)
+                    layoutSlider("settings.layout_search_bubble_horizontal_offset", value: $settingsManager.manualSearchBubbleHorizontalOffset, range: -200...200)
+                    layoutSlider("settings.layout_search_bubble_vertical_offset", value: $settingsManager.manualSearchBubbleVerticalOffset, range: -16...24)
+                }
+
+                layoutGroup("settings.layout_group_cards") {
+                    layoutSlider("settings.layout_card_spacing", value: $settingsManager.manualCardSpacing, range: 4...40)
+                    layoutSlider("settings.layout_card_padding", value: $settingsManager.manualCardContentPadding, range: 8...32)
+                    layoutSlider("settings.layout_card_height", value: $settingsManager.manualCardHeight, range: 120...280)
+                    layoutSlider("settings.layout_text_card_width", value: $settingsManager.manualTextCardWidth, range: 200...420)
+                    layoutSlider("settings.layout_image_card_width", value: $settingsManager.manualImageCardWidth, range: 160...340)
+                    layoutSlider("settings.layout_bottom_inset", value: $settingsManager.manualBottomInset, range: 0...56)
+                }
+            }
 
             Toggle(L10n.tr("settings.show_timestamps"), isOn: $settingsManager.showTimestampsOnCards)
             Toggle(L10n.tr("settings.show_metadata"), isOn: $settingsManager.showMetadataOnCards)
@@ -308,6 +348,38 @@ struct SettingsView: View {
                     Label(L10n.tr("settings.delete_all_saved_data"), systemImage: "trash")
                 }
             }
+        }
+    }
+
+    private func layoutGroup<Content: View>(
+        _ titleKey: String,
+        @ViewBuilder content: () -> Content
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(L10n.tr(titleKey))
+                .font(.system(size: 11, weight: .semibold, design: .rounded))
+                .foregroundStyle(.secondary)
+                .textCase(.uppercase)
+
+            content()
+        }
+        .padding(.top, 4)
+    }
+
+    private func layoutSlider(
+        _ titleKey: String,
+        value: Binding<Double>,
+        range: ClosedRange<Double>
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text(L10n.tr(titleKey))
+                Spacer()
+                Text(L10n.tr("unit.points", Int(value.wrappedValue.rounded())))
+                    .foregroundStyle(.secondary)
+            }
+
+            Slider(value: value, in: range, step: 1)
         }
     }
 
