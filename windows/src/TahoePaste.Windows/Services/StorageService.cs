@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using TahoePaste.Windows.Localization;
 using TahoePaste.Windows.Models;
@@ -171,6 +172,7 @@ public sealed class StorageService
             .Where(path => File.Exists(path) || Directory.Exists(path))
             .Select(FileReference)
             .ToArray();
+        var imagePreview = StoreImageFilePreview(references);
 
         return new ClipboardItem(
             Guid.NewGuid(),
@@ -178,9 +180,56 @@ public sealed class StorageService
             DateTimeOffset.Now,
             string.Join(Environment.NewLine, references.Select(reference => reference.Path)),
             null,
-            null,
-            null,
+            imagePreview?.Filename,
+            imagePreview?.PixelSize,
             references);
+    }
+
+    private const int PreviewMaxPixelDimension = 800;
+
+    // A single copied image file gets a stored preview so its card can keep
+    // showing the picture even after the original file moves or is deleted.
+    // Preview failures must never break capturing the item itself.
+    private (string Filename, ClipboardPixelSize PixelSize)? StoreImageFilePreview(
+        IReadOnlyList<ClipboardFileReference> references)
+    {
+        if (references is not [{ IsDirectory: false, Category: ClipboardFileCategory.Image } reference])
+        {
+            return null;
+        }
+
+        try
+        {
+            using var sourceStream = File.OpenRead(reference.Path);
+            var decoder = BitmapDecoder.Create(
+                sourceStream,
+                BitmapCreateOptions.None,
+                BitmapCacheOption.OnLoad);
+            var frame = decoder.Frames[0];
+            var pixelSize = new ClipboardPixelSize(frame.PixelWidth, frame.PixelHeight);
+
+            var largestSide = Math.Max(frame.PixelWidth, frame.PixelHeight);
+            BitmapSource preview = frame;
+            if (largestSide > PreviewMaxPixelDimension)
+            {
+                var scale = (double)PreviewMaxPixelDimension / largestSide;
+                preview = new TransformedBitmap(frame, new ScaleTransform(scale, scale));
+            }
+
+            var filename = $"{Guid.NewGuid():N}.png";
+            using (var previewStream = File.Create(Path.Combine(_paths.ImagesDirectory, filename)))
+            {
+                var encoder = new PngBitmapEncoder();
+                encoder.Frames.Add(BitmapFrame.Create(preview));
+                encoder.Save(previewStream);
+            }
+
+            return (filename, pixelSize);
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     private static ClipboardFileReference FileReference(string path)

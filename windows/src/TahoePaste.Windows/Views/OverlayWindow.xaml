@@ -3,8 +3,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="TahoePaste"
         WindowStyle="None"
-        AllowsTransparency="False"
-        Background="#141A22"
+        AllowsTransparency="True"
+        Background="Transparent"
         ResizeMode="NoResize"
         ShowInTaskbar="False"
         Topmost="True"
@@ -21,33 +21,59 @@
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
 
-                <Border x:Name="SearchBubble"
-                        Grid.Row="0"
-                        Height="32"
-                        MinWidth="280"
-                        MaxWidth="720"
-                        Margin="16,8,16,4"
-                        HorizontalAlignment="Center"
-                        CornerRadius="10"
-                        BorderThickness="1"
-                        Visibility="Collapsed">
-                    <DockPanel LastChildFill="True" Margin="14,0,10,0">
-                        <Button x:Name="ClearSearchButton"
-                                DockPanel.Dock="Right"
-                                Width="22"
-                                Height="22"
-                                Content="x"
+                <Grid x:Name="TopBar" Grid.Row="0" Height="36">
+                    <Border x:Name="SearchBubble"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            CornerRadius="10"
+                            BorderThickness="1"
+                            Visibility="Collapsed">
+                        <DockPanel LastChildFill="True" Margin="14,0,10,0">
+                            <Button x:Name="ClearSearchButton"
+                                    DockPanel.Dock="Right"
+                                    Width="22"
+                                    Height="22"
+                                    Content="x"
+                                    BorderThickness="0"
+                                    Background="Transparent"
+                                    Click="OnClearSearchClick" />
+                            <TextBlock x:Name="SearchText"
+                                       VerticalAlignment="Center"
+                                       FontFamily="{StaticResource TahoeFont}"
+                                       FontSize="13"
+                                       FontWeight="SemiBold"
+                                       TextTrimming="CharacterEllipsis" />
+                        </DockPanel>
+                    </Border>
+
+                    <StackPanel x:Name="ToolbarPanel"
+                                Orientation="Horizontal"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Center"
+                                Margin="0,0,10,0">
+                        <Button x:Name="SettingsButton"
+                                Content="⚙"
                                 BorderThickness="0"
                                 Background="Transparent"
-                                Click="OnClearSearchClick" />
-                        <TextBlock x:Name="SearchText"
-                                   VerticalAlignment="Center"
-                                   FontFamily="{StaticResource TahoeFont}"
-                                   FontSize="13"
-                                   FontWeight="SemiBold"
-                                   TextTrimming="CharacterEllipsis" />
-                    </DockPanel>
-                </Border>
+                                Click="OnSettingsClick" />
+                        <Button x:Name="SearchButton"
+                                Content="⌕"
+                                BorderThickness="0"
+                                Background="Transparent"
+                                Click="OnSearchClick" />
+                        <Button x:Name="ReturnButton"
+                                Content="↺"
+                                BorderThickness="0"
+                                Background="Transparent"
+                                Visibility="Collapsed"
+                                Click="OnReturnClick" />
+                        <Button x:Name="ScrollStartButton"
+                                Content="←"
+                                BorderThickness="0"
+                                Background="Transparent"
+                                Click="OnScrollStartClick" />
+                    </StackPanel>
+                </Grid>
 
                 <Grid Grid.Row="1">
                     <StackPanel x:Name="EmptyPanel"
@@ -76,41 +102,10 @@
                                   PreviewMouseWheel="OnCardsMouseWheel">
                         <StackPanel x:Name="CardsPanel"
                                     Orientation="Horizontal"
-                                    VerticalAlignment="Center"
-                                    Margin="16,10,16,10" />
+                                    VerticalAlignment="Bottom"
+                                    Margin="16,0,16,16" />
                     </ScrollViewer>
                 </Grid>
-
-                <StackPanel Grid.RowSpan="2"
-                            Orientation="Horizontal"
-                            HorizontalAlignment="Right"
-                            VerticalAlignment="Top"
-                            Margin="0,5,10,0">
-                    <Button x:Name="SettingsButton"
-                            Width="26"
-                            Height="26"
-                            Content="⚙"
-                            ToolTip="Settings"
-                            BorderThickness="0"
-                            Background="Transparent"
-                            Click="OnSettingsClick" />
-                    <Button x:Name="SearchButton"
-                            Width="26"
-                            Height="26"
-                            Content="⌕"
-                            ToolTip="Search"
-                            BorderThickness="0"
-                            Background="Transparent"
-                            Click="OnSearchClick" />
-                    <Button x:Name="ScrollStartButton"
-                            Width="26"
-                            Height="26"
-                            Content="←"
-                            ToolTip="Newest"
-                            BorderThickness="0"
-                            Background="Transparent"
-                            Click="OnScrollStartClick" />
-                </StackPanel>
             </Grid>
         </Border>
     </Grid>

@@ -6,7 +6,7 @@
         Height="780"
         MinWidth="680"
         MinHeight="680"
-        WindowStartupLocation="CenterScreen"
+        WindowStartupLocation="Manual"
         Loaded="OnLoaded">
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <StackPanel Margin="24">
@@ -123,13 +123,11 @@
                         <TextBox x:Name="NightThemeStartText" Grid.Column="1" LostFocus="OnThemeTimeLostFocus" KeyDown="OnThemeTimeKeyDown" />
                     </Grid>
                     <TextBlock x:Name="ThemeScheduleHelp" TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}" Margin="0,4,0,8" />
-                    <DockPanel>
-                        <TextBlock x:Name="OverlayHeightLabel" DockPanel.Dock="Left" VerticalAlignment="Center" />
-                        <TextBlock x:Name="OverlayHeightValue" DockPanel.Dock="Right" VerticalAlignment="Center" />
-                    </DockPanel>
-                    <Slider x:Name="OverlayHeightSlider" Minimum="220" Maximum="360" TickFrequency="2" IsSnapToTickEnabled="True" ValueChanged="OnOverlayHeightChanged" />
                     <TextBlock x:Name="CardSizeLabel" Margin="0,8,0,6" />
                     <ComboBox x:Name="CardSizeCombo" SelectionChanged="OnCardSizeChanged" />
+                    <CheckBox x:Name="AutoLayoutCheck" Margin="0,12,0,0" Checked="OnAutoLayoutChanged" Unchecked="OnAutoLayoutChanged" />
+                    <TextBlock x:Name="AutoLayoutHelp" TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}" Margin="0,4,0,0" />
+                    <StackPanel x:Name="LayoutSlidersPanel" Visibility="Collapsed" />
                     <CheckBox x:Name="ShowTimestampsCheck" Margin="0,12,0,0" Checked="OnShowTimestampsChanged" Unchecked="OnShowTimestampsChanged" />
                     <CheckBox x:Name="ShowMetadataCheck" Margin="0,8,0,0" Checked="OnShowMetadataChanged" Unchecked="OnShowMetadataChanged" />
                     <DockPanel Margin="0,12,0,0">

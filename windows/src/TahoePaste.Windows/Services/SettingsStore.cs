@@ -31,11 +31,24 @@ public sealed class SettingsStore
         try
         {
             var json = File.ReadAllText(_settingsPath);
-            return JsonSerializer.Deserialize<AppSettings>(json, _jsonOptions) ?? new AppSettings();
+            var settings = JsonSerializer.Deserialize<AppSettings>(json, _jsonOptions) ?? new AppSettings();
+            MigrateLegacySettings(settings);
+            return settings;
         }
         catch
         {
             return new AppSettings();
+        }
+    }
+
+    // Pre-layout builds persisted a single overlay height; carry it into the
+    // manual layout so a user-tuned value survives the upgrade.
+    private static void MigrateLegacySettings(AppSettings settings)
+    {
+        if (settings.OverlayHeight > 0)
+        {
+            settings.ManualOverlayHeight = settings.OverlayHeight;
+            settings.OverlayHeight = 0;
         }
     }
 
