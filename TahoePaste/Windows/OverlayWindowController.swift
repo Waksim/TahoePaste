@@ -23,7 +23,15 @@ final class OverlayWindowController {
         panel.isVisible
     }
 
+    private(set) var isPreview = false
+
+    // Set while the settings window is open: interactive dismissals downgrade
+    // the overlay to the live preview instead of hiding it.
+    var fallsBackToPreview = false
+
     func show(on screen: NSScreen?) {
+        isPreview = false
+        viewModel.prepareForOverlayPresentation()
         let targetScreen = screen ?? Self.activeScreen() ?? NSScreen.main
         updateFrame(for: targetScreen)
         installEventMonitors()
@@ -32,11 +40,35 @@ final class OverlayWindowController {
         panel.makeKeyAndOrderFront(nil)
     }
 
+    // Preview keeps the panel visible without stealing key focus and without
+    // the event monitors, so clicks and typing in the settings window are
+    // left alone.
+    func showPreview(on screen: NSScreen?) {
+        isPreview = true
+        removeEventMonitors()
+
+        let targetScreen = screen ?? Self.activeScreen() ?? NSScreen.main
+        updateFrame(for: targetScreen)
+        panel.orderFrontRegardless()
+    }
+
     func hide() {
         guard panel.isVisible else {
             return
         }
 
+        // Only an interactive session leaves a "return to where I was" anchor;
+        // dismissing the settings preview must not overwrite it.
+        if isPreview == false {
+            viewModel.captureSessionAnchor()
+        }
+
+        if fallsBackToPreview {
+            showPreview(on: Self.activeScreen())
+            return
+        }
+
+        isPreview = false
         panel.orderOut(nil)
         removeEventMonitors()
     }
@@ -116,14 +148,13 @@ final class OverlayWindowController {
             return
         }
 
-        let height = OverlayView.topBarHeight
-            + settingsManager.cardSizePreset.totalCardHeight
-            + OverlayView.bottomInset
+        let layout = settingsManager.overlayLayout
+        let width = max(visibleFrame.width - layout.overlayScreenHorizontalInset * 2, 320)
         let frame = CGRect(
-            x: visibleFrame.minX,
-            y: visibleFrame.minY,
-            width: visibleFrame.width,
-            height: height
+            x: visibleFrame.midX - width / 2,
+            y: visibleFrame.minY + layout.overlayScreenBottomInset,
+            width: width,
+            height: layout.overlayHeight
         )
 
         panel.setFrame(frame, display: false)

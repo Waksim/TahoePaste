@@ -16,18 +16,20 @@ struct ClipboardCardView: View {
         settingsManager.themePalette
     }
 
+    private var overlayLayout: SettingsManager.OverlayLayout {
+        settingsManager.overlayLayout
+    }
+
     private var cardWidth: CGFloat {
-        item.usesImageCardLayout
-            ? settingsManager.cardSizePreset.imageCardWidth
-            : settingsManager.cardSizePreset.textCardWidth
+        item.usesImageCardLayout ? overlayLayout.imageCardWidth : overlayLayout.textCardWidth
     }
 
     private var cardHeight: CGFloat {
-        settingsManager.cardSizePreset.cardHeight
+        overlayLayout.cardHeight
     }
 
     private var cardPadding: CGFloat {
-        settingsManager.cardSizePreset.contentPadding
+        overlayLayout.contentPadding
     }
 
     private var textBottomPadding: CGFloat {
@@ -43,7 +45,7 @@ struct ClipboardCardView: View {
     }
 
     private var totalCardHeight: CGFloat {
-        settingsManager.cardSizePreset.totalCardHeight
+        overlayLayout.totalCardHeight
     }
 
     private var controlInset: CGFloat {

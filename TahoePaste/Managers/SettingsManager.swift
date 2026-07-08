@@ -70,10 +70,6 @@ final class SettingsManager: ObservableObject {
             }
         }
 
-        var totalCardHeight: CGFloat {
-            cardHeight + contentPadding * 2
-        }
-
         var imagePreviewHeight: CGFloat {
             switch self {
             case .compact:
@@ -94,6 +90,65 @@ final class SettingsManager: ObservableObject {
             case .large:
                 return 18
             }
+        }
+    }
+
+    struct OverlayLayout {
+        let topBarHeight: CGFloat
+        let bottomInset: CGFloat
+        let cardSpacing: CGFloat
+        let contentPadding: CGFloat
+        let cardHeight: CGFloat
+        let textCardWidth: CGFloat
+        let imageCardWidth: CGFloat
+        let toolbarIconSize: CGFloat
+        let toolbarIconPadding: CGFloat
+        let toolbarIconSpacing: CGFloat
+        // Positive values push the toolbar icons down (towards the cards),
+        // negative values lift them; 0 keeps them centered in the top bar.
+        let toolbarVerticalOffset: CGFloat
+        let searchBubbleWidth: CGFloat
+        let searchBubbleHeight: CGFloat
+        // Offsets from the centered position: positive x moves the bubble
+        // right, positive y moves it down.
+        let searchBubbleHorizontalOffset: CGFloat
+        let searchBubbleVerticalOffset: CGFloat
+        // Window geometry: total overlay height and its distances from the
+        // screen edges (cards stay anchored bottomInset above the window
+        // bottom, so extra height opens up below the top bar).
+        let overlayHeight: CGFloat
+        let overlayScreenHorizontalInset: CGFloat
+        let overlayScreenBottomInset: CGFloat
+
+        var totalCardHeight: CGFloat {
+            cardHeight + contentPadding * 2
+        }
+
+        static func automatic(for preset: CardSizePreset) -> OverlayLayout {
+            let topBarHeight: CGFloat = 31
+            let bottomInset: CGFloat = 31
+            let totalCardHeight = preset.cardHeight + preset.contentPadding * 2
+
+            return OverlayLayout(
+                topBarHeight: topBarHeight,
+                bottomInset: bottomInset,
+                cardSpacing: 16,
+                contentPadding: preset.contentPadding,
+                cardHeight: preset.cardHeight,
+                textCardWidth: preset.textCardWidth,
+                imageCardWidth: preset.imageCardWidth,
+                toolbarIconSize: 10,
+                toolbarIconPadding: 4,
+                toolbarIconSpacing: 8,
+                toolbarVerticalOffset: 0,
+                searchBubbleWidth: 480,
+                searchBubbleHeight: 30,
+                searchBubbleHorizontalOffset: 0,
+                searchBubbleVerticalOffset: 0,
+                overlayHeight: topBarHeight + totalCardHeight + bottomInset,
+                overlayScreenHorizontalInset: 0,
+                overlayScreenBottomInset: 0
+            )
         }
     }
 
@@ -308,6 +363,215 @@ final class SettingsManager: ObservableObject {
         didSet { persist(cardSizePreset.rawValue, forKey: Keys.cardSizePreset) }
     }
 
+    @Published var useAutomaticOverlayLayout: Bool {
+        didSet {
+            persist(useAutomaticOverlayLayout, forKey: Keys.useAutomaticOverlayLayout)
+
+            // Manual sliders pick up from the layout the user currently sees.
+            if oldValue, useAutomaticOverlayLayout == false {
+                seedManualLayout(from: .automatic(for: cardSizePreset))
+            }
+        }
+    }
+
+    @Published var manualTopBarHeight: Double {
+        didSet {
+            let clampedValue = Self.clamp(manualTopBarHeight, min: 20, max: 56)
+            guard manualTopBarHeight == clampedValue else {
+                manualTopBarHeight = clampedValue
+                return
+            }
+            persist(manualTopBarHeight, forKey: Keys.manualTopBarHeight)
+        }
+    }
+
+    @Published var manualBottomInset: Double {
+        didSet {
+            let clampedValue = Self.clamp(manualBottomInset, min: 0, max: 56)
+            guard manualBottomInset == clampedValue else {
+                manualBottomInset = clampedValue
+                return
+            }
+            persist(manualBottomInset, forKey: Keys.manualBottomInset)
+        }
+    }
+
+    @Published var manualCardSpacing: Double {
+        didSet {
+            let clampedValue = Self.clamp(manualCardSpacing, min: 4, max: 40)
+            guard manualCardSpacing == clampedValue else {
+                manualCardSpacing = clampedValue
+                return
+            }
+            persist(manualCardSpacing, forKey: Keys.manualCardSpacing)
+        }
+    }
+
+    @Published var manualCardContentPadding: Double {
+        didSet {
+            let clampedValue = Self.clamp(manualCardContentPadding, min: 8, max: 32)
+            guard manualCardContentPadding == clampedValue else {
+                manualCardContentPadding = clampedValue
+                return
+            }
+            persist(manualCardContentPadding, forKey: Keys.manualCardContentPadding)
+        }
+    }
+
+    @Published var manualCardHeight: Double {
+        didSet {
+            let clampedValue = Self.clamp(manualCardHeight, min: 120, max: 280)
+            guard manualCardHeight == clampedValue else {
+                manualCardHeight = clampedValue
+                return
+            }
+            persist(manualCardHeight, forKey: Keys.manualCardHeight)
+        }
+    }
+
+    @Published var manualTextCardWidth: Double {
+        didSet {
+            let clampedValue = Self.clamp(manualTextCardWidth, min: 200, max: 420)
+            guard manualTextCardWidth == clampedValue else {
+                manualTextCardWidth = clampedValue
+                return
+            }
+            persist(manualTextCardWidth, forKey: Keys.manualTextCardWidth)
+        }
+    }
+
+    @Published var manualImageCardWidth: Double {
+        didSet {
+            let clampedValue = Self.clamp(manualImageCardWidth, min: 160, max: 340)
+            guard manualImageCardWidth == clampedValue else {
+                manualImageCardWidth = clampedValue
+                return
+            }
+            persist(manualImageCardWidth, forKey: Keys.manualImageCardWidth)
+        }
+    }
+
+    @Published var manualToolbarIconSize: Double {
+        didSet {
+            let clampedValue = Self.clamp(manualToolbarIconSize, min: 8, max: 20)
+            guard manualToolbarIconSize == clampedValue else {
+                manualToolbarIconSize = clampedValue
+                return
+            }
+            persist(manualToolbarIconSize, forKey: Keys.manualToolbarIconSize)
+        }
+    }
+
+    @Published var manualToolbarIconPadding: Double {
+        didSet {
+            let clampedValue = Self.clamp(manualToolbarIconPadding, min: 0, max: 12)
+            guard manualToolbarIconPadding == clampedValue else {
+                manualToolbarIconPadding = clampedValue
+                return
+            }
+            persist(manualToolbarIconPadding, forKey: Keys.manualToolbarIconPadding)
+        }
+    }
+
+    @Published var manualToolbarIconSpacing: Double {
+        didSet {
+            let clampedValue = Self.clamp(manualToolbarIconSpacing, min: 0, max: 24)
+            guard manualToolbarIconSpacing == clampedValue else {
+                manualToolbarIconSpacing = clampedValue
+                return
+            }
+            persist(manualToolbarIconSpacing, forKey: Keys.manualToolbarIconSpacing)
+        }
+    }
+
+    @Published var manualToolbarVerticalOffset: Double {
+        didSet {
+            let clampedValue = Self.clamp(manualToolbarVerticalOffset, min: -16, max: 24)
+            guard manualToolbarVerticalOffset == clampedValue else {
+                manualToolbarVerticalOffset = clampedValue
+                return
+            }
+            persist(manualToolbarVerticalOffset, forKey: Keys.manualToolbarVerticalOffset)
+        }
+    }
+
+    @Published var manualSearchBubbleWidth: Double {
+        didSet {
+            let clampedValue = Self.clamp(manualSearchBubbleWidth, min: 240, max: 800)
+            guard manualSearchBubbleWidth == clampedValue else {
+                manualSearchBubbleWidth = clampedValue
+                return
+            }
+            persist(manualSearchBubbleWidth, forKey: Keys.manualSearchBubbleWidth)
+        }
+    }
+
+    @Published var manualSearchBubbleHeight: Double {
+        didSet {
+            let clampedValue = Self.clamp(manualSearchBubbleHeight, min: 22, max: 48)
+            guard manualSearchBubbleHeight == clampedValue else {
+                manualSearchBubbleHeight = clampedValue
+                return
+            }
+            persist(manualSearchBubbleHeight, forKey: Keys.manualSearchBubbleHeight)
+        }
+    }
+
+    @Published var manualSearchBubbleHorizontalOffset: Double {
+        didSet {
+            let clampedValue = Self.clamp(manualSearchBubbleHorizontalOffset, min: -200, max: 200)
+            guard manualSearchBubbleHorizontalOffset == clampedValue else {
+                manualSearchBubbleHorizontalOffset = clampedValue
+                return
+            }
+            persist(manualSearchBubbleHorizontalOffset, forKey: Keys.manualSearchBubbleHorizontalOffset)
+        }
+    }
+
+    @Published var manualSearchBubbleVerticalOffset: Double {
+        didSet {
+            let clampedValue = Self.clamp(manualSearchBubbleVerticalOffset, min: -16, max: 24)
+            guard manualSearchBubbleVerticalOffset == clampedValue else {
+                manualSearchBubbleVerticalOffset = clampedValue
+                return
+            }
+            persist(manualSearchBubbleVerticalOffset, forKey: Keys.manualSearchBubbleVerticalOffset)
+        }
+    }
+
+    @Published var manualOverlayHeight: Double {
+        didSet {
+            let clampedValue = Self.clamp(manualOverlayHeight, min: 160, max: 600)
+            guard manualOverlayHeight == clampedValue else {
+                manualOverlayHeight = clampedValue
+                return
+            }
+            persist(manualOverlayHeight, forKey: Keys.manualOverlayHeight)
+        }
+    }
+
+    @Published var manualOverlayScreenHorizontalInset: Double {
+        didSet {
+            let clampedValue = Self.clamp(manualOverlayScreenHorizontalInset, min: 0, max: 400)
+            guard manualOverlayScreenHorizontalInset == clampedValue else {
+                manualOverlayScreenHorizontalInset = clampedValue
+                return
+            }
+            persist(manualOverlayScreenHorizontalInset, forKey: Keys.manualOverlayScreenHorizontalInset)
+        }
+    }
+
+    @Published var manualOverlayScreenBottomInset: Double {
+        didSet {
+            let clampedValue = Self.clamp(manualOverlayScreenBottomInset, min: 0, max: 300)
+            guard manualOverlayScreenBottomInset == clampedValue else {
+                manualOverlayScreenBottomInset = clampedValue
+                return
+            }
+            persist(manualOverlayScreenBottomInset, forKey: Keys.manualOverlayScreenBottomInset)
+        }
+    }
+
     @Published var showTimestampsOnCards: Bool {
         didSet { persist(showTimestampsOnCards, forKey: Keys.showTimestampsOnCards) }
     }
@@ -388,6 +652,98 @@ final class SettingsManager: ObservableObject {
         )
         self.reactivatePreviousAppBeforePaste = defaults.object(forKey: Keys.reactivatePreviousAppBeforePaste) as? Bool ?? true
         self.cardSizePreset = CardSizePreset(rawValue: defaults.string(forKey: Keys.cardSizePreset) ?? "") ?? .comfortable
+        let defaultLayout = OverlayLayout.automatic(for: .comfortable)
+        self.useAutomaticOverlayLayout = defaults.object(forKey: Keys.useAutomaticOverlayLayout) as? Bool ?? true
+        self.manualTopBarHeight = Self.clamp(
+            defaults.object(forKey: Keys.manualTopBarHeight) as? Double ?? Double(defaultLayout.topBarHeight),
+            min: 20,
+            max: 56
+        )
+        self.manualBottomInset = Self.clamp(
+            defaults.object(forKey: Keys.manualBottomInset) as? Double ?? Double(defaultLayout.bottomInset),
+            min: 0,
+            max: 56
+        )
+        self.manualCardSpacing = Self.clamp(
+            defaults.object(forKey: Keys.manualCardSpacing) as? Double ?? Double(defaultLayout.cardSpacing),
+            min: 4,
+            max: 40
+        )
+        self.manualCardContentPadding = Self.clamp(
+            defaults.object(forKey: Keys.manualCardContentPadding) as? Double ?? Double(defaultLayout.contentPadding),
+            min: 8,
+            max: 32
+        )
+        self.manualCardHeight = Self.clamp(
+            defaults.object(forKey: Keys.manualCardHeight) as? Double ?? Double(defaultLayout.cardHeight),
+            min: 120,
+            max: 280
+        )
+        self.manualTextCardWidth = Self.clamp(
+            defaults.object(forKey: Keys.manualTextCardWidth) as? Double ?? Double(defaultLayout.textCardWidth),
+            min: 200,
+            max: 420
+        )
+        self.manualImageCardWidth = Self.clamp(
+            defaults.object(forKey: Keys.manualImageCardWidth) as? Double ?? Double(defaultLayout.imageCardWidth),
+            min: 160,
+            max: 340
+        )
+        self.manualToolbarIconSize = Self.clamp(
+            defaults.object(forKey: Keys.manualToolbarIconSize) as? Double ?? Double(defaultLayout.toolbarIconSize),
+            min: 8,
+            max: 20
+        )
+        self.manualToolbarIconPadding = Self.clamp(
+            defaults.object(forKey: Keys.manualToolbarIconPadding) as? Double ?? Double(defaultLayout.toolbarIconPadding),
+            min: 0,
+            max: 12
+        )
+        self.manualToolbarIconSpacing = Self.clamp(
+            defaults.object(forKey: Keys.manualToolbarIconSpacing) as? Double ?? Double(defaultLayout.toolbarIconSpacing),
+            min: 0,
+            max: 24
+        )
+        self.manualToolbarVerticalOffset = Self.clamp(
+            defaults.object(forKey: Keys.manualToolbarVerticalOffset) as? Double ?? Double(defaultLayout.toolbarVerticalOffset),
+            min: -16,
+            max: 24
+        )
+        self.manualSearchBubbleWidth = Self.clamp(
+            defaults.object(forKey: Keys.manualSearchBubbleWidth) as? Double ?? Double(defaultLayout.searchBubbleWidth),
+            min: 240,
+            max: 800
+        )
+        self.manualSearchBubbleHeight = Self.clamp(
+            defaults.object(forKey: Keys.manualSearchBubbleHeight) as? Double ?? Double(defaultLayout.searchBubbleHeight),
+            min: 22,
+            max: 48
+        )
+        self.manualSearchBubbleHorizontalOffset = Self.clamp(
+            defaults.object(forKey: Keys.manualSearchBubbleHorizontalOffset) as? Double ?? Double(defaultLayout.searchBubbleHorizontalOffset),
+            min: -200,
+            max: 200
+        )
+        self.manualSearchBubbleVerticalOffset = Self.clamp(
+            defaults.object(forKey: Keys.manualSearchBubbleVerticalOffset) as? Double ?? Double(defaultLayout.searchBubbleVerticalOffset),
+            min: -16,
+            max: 24
+        )
+        self.manualOverlayHeight = Self.clamp(
+            defaults.object(forKey: Keys.manualOverlayHeight) as? Double ?? Double(defaultLayout.overlayHeight),
+            min: 160,
+            max: 600
+        )
+        self.manualOverlayScreenHorizontalInset = Self.clamp(
+            defaults.object(forKey: Keys.manualOverlayScreenHorizontalInset) as? Double ?? Double(defaultLayout.overlayScreenHorizontalInset),
+            min: 0,
+            max: 400
+        )
+        self.manualOverlayScreenBottomInset = Self.clamp(
+            defaults.object(forKey: Keys.manualOverlayScreenBottomInset) as? Double ?? Double(defaultLayout.overlayScreenBottomInset),
+            min: 0,
+            max: 300
+        )
         self.showTimestampsOnCards = defaults.object(forKey: Keys.showTimestampsOnCards) as? Bool ?? true
         self.showMetadataOnCards = defaults.object(forKey: Keys.showMetadataOnCards) as? Bool ?? true
         self.cornerRadiusIntensity = Self.clamp(
@@ -437,6 +793,54 @@ final class SettingsManager: ObservableObject {
 
     var themePalette: ThemePalette {
         ThemePalette.palette(for: activeTheme)
+    }
+
+    var overlayLayout: OverlayLayout {
+        guard useAutomaticOverlayLayout == false else {
+            return .automatic(for: cardSizePreset)
+        }
+
+        return OverlayLayout(
+            topBarHeight: CGFloat(manualTopBarHeight),
+            bottomInset: CGFloat(manualBottomInset),
+            cardSpacing: CGFloat(manualCardSpacing),
+            contentPadding: CGFloat(manualCardContentPadding),
+            cardHeight: CGFloat(manualCardHeight),
+            textCardWidth: CGFloat(manualTextCardWidth),
+            imageCardWidth: CGFloat(manualImageCardWidth),
+            toolbarIconSize: CGFloat(manualToolbarIconSize),
+            toolbarIconPadding: CGFloat(manualToolbarIconPadding),
+            toolbarIconSpacing: CGFloat(manualToolbarIconSpacing),
+            toolbarVerticalOffset: CGFloat(manualToolbarVerticalOffset),
+            searchBubbleWidth: CGFloat(manualSearchBubbleWidth),
+            searchBubbleHeight: CGFloat(manualSearchBubbleHeight),
+            searchBubbleHorizontalOffset: CGFloat(manualSearchBubbleHorizontalOffset),
+            searchBubbleVerticalOffset: CGFloat(manualSearchBubbleVerticalOffset),
+            overlayHeight: CGFloat(manualOverlayHeight),
+            overlayScreenHorizontalInset: CGFloat(manualOverlayScreenHorizontalInset),
+            overlayScreenBottomInset: CGFloat(manualOverlayScreenBottomInset)
+        )
+    }
+
+    private func seedManualLayout(from layout: OverlayLayout) {
+        manualTopBarHeight = Double(layout.topBarHeight)
+        manualBottomInset = Double(layout.bottomInset)
+        manualCardSpacing = Double(layout.cardSpacing)
+        manualCardContentPadding = Double(layout.contentPadding)
+        manualCardHeight = Double(layout.cardHeight)
+        manualTextCardWidth = Double(layout.textCardWidth)
+        manualImageCardWidth = Double(layout.imageCardWidth)
+        manualToolbarIconSize = Double(layout.toolbarIconSize)
+        manualToolbarIconPadding = Double(layout.toolbarIconPadding)
+        manualToolbarIconSpacing = Double(layout.toolbarIconSpacing)
+        manualToolbarVerticalOffset = Double(layout.toolbarVerticalOffset)
+        manualSearchBubbleWidth = Double(layout.searchBubbleWidth)
+        manualSearchBubbleHeight = Double(layout.searchBubbleHeight)
+        manualSearchBubbleHorizontalOffset = Double(layout.searchBubbleHorizontalOffset)
+        manualSearchBubbleVerticalOffset = Double(layout.searchBubbleVerticalOffset)
+        manualOverlayHeight = Double(layout.overlayHeight)
+        manualOverlayScreenHorizontalInset = Double(layout.overlayScreenHorizontalInset)
+        manualOverlayScreenBottomInset = Double(layout.overlayScreenBottomInset)
     }
 
     var preferredColorScheme: ColorScheme? {
@@ -684,6 +1088,25 @@ private enum Keys {
     static let pasteDelay = "TahoePastePasteDelay"
     static let reactivatePreviousAppBeforePaste = "TahoePasteReactivatePreviousAppBeforePaste"
     static let cardSizePreset = "TahoePasteCardSizePreset"
+    static let useAutomaticOverlayLayout = "TahoePasteUseAutomaticOverlayLayout"
+    static let manualTopBarHeight = "TahoePasteManualTopBarHeight"
+    static let manualBottomInset = "TahoePasteManualBottomInset"
+    static let manualCardSpacing = "TahoePasteManualCardSpacing"
+    static let manualCardContentPadding = "TahoePasteManualCardContentPadding"
+    static let manualCardHeight = "TahoePasteManualCardHeight"
+    static let manualTextCardWidth = "TahoePasteManualTextCardWidth"
+    static let manualImageCardWidth = "TahoePasteManualImageCardWidth"
+    static let manualToolbarIconSize = "TahoePasteManualToolbarIconSize"
+    static let manualToolbarIconPadding = "TahoePasteManualToolbarIconPadding"
+    static let manualToolbarIconSpacing = "TahoePasteManualToolbarIconSpacing"
+    static let manualToolbarVerticalOffset = "TahoePasteManualToolbarVerticalOffset"
+    static let manualSearchBubbleWidth = "TahoePasteManualSearchBubbleWidth"
+    static let manualSearchBubbleHeight = "TahoePasteManualSearchBubbleHeight"
+    static let manualSearchBubbleHorizontalOffset = "TahoePasteManualSearchBubbleHorizontalOffset"
+    static let manualSearchBubbleVerticalOffset = "TahoePasteManualSearchBubbleVerticalOffset"
+    static let manualOverlayHeight = "TahoePasteManualOverlayHeight"
+    static let manualOverlayScreenHorizontalInset = "TahoePasteManualOverlayScreenHorizontalInset"
+    static let manualOverlayScreenBottomInset = "TahoePasteManualOverlayScreenBottomInset"
     static let showTimestampsOnCards = "TahoePasteShowTimestampsOnCards"
     static let showMetadataOnCards = "TahoePasteShowMetadataOnCards"
     static let cornerRadiusIntensity = "TahoePasteCornerRadiusIntensity"
