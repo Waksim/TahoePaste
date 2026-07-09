@@ -1,8 +1,8 @@
 name: Windows Build Check
 
 # Compile-only check for the Windows app. The release workflow only runs on
-# tags, and the WPF target cannot be built on macOS, so branch work needs a
-# way to verify the Windows project still compiles.
+# tags and pushes to main, and the WPF target cannot be built on macOS, so
+# PR branches need a way to verify the Windows project still compiles.
 on:
   workflow_dispatch:
   pull_request:
