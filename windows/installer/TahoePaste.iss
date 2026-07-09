@@ -6,6 +6,12 @@
 #define AppVersion "1.0.0"
 #endif
 
+; VersionInfoProductVersion only accepts dotted numerics, so dev builds
+; ("0.3.1-7-gabc1234") pass the plain numeric part separately.
+#ifndef AppNumericVersion
+#define AppNumericVersion AppVersion
+#endif
+
 #ifndef SourceDir
 #define SourceDir "..\src\TahoePaste.Windows\bin\Release\net10.0-windows10.0.26100.0\win-x64\publish"
 #endif
@@ -35,7 +41,7 @@ UninstallDisplayIcon={app}\{#MyAppExeName}
 VersionInfoCompany={#MyAppPublisher}
 VersionInfoDescription=Local-only clipboard manager for Windows 11
 VersionInfoProductName={#MyAppName}
-VersionInfoProductVersion={#AppVersion}
+VersionInfoProductVersion={#AppNumericVersion}
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
