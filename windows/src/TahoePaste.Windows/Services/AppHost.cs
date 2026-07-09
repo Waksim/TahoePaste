@@ -224,17 +224,43 @@ public sealed class AppHost : IDisposable
 
     private void OpenSettings()
     {
-        HideOverlay();
+        // The preview needs a window even if the overlay was never shown yet —
+        // ShowOverlay() is the only other place that constructs it lazily.
+        _overlayWindow ??= new OverlayWindow(_viewModel, _settings);
+        _overlayWindow.FallsBackToPreview = true;
+        _overlayWindow.ShowPreview();
+        // Keep the search bubble visible in the preview so its layout
+        // sliders have something to act on.
+        _viewModel.BeginSearch();
 
         if (_settingsWindow is null || _settingsWindow.IsLoaded == false)
         {
             _settingsWindow = new SettingsWindow(_viewModel, _settings, _startupService);
-            _settingsWindow.Closed += (_, _) => _settingsWindow = null;
+            _settingsWindow.Closed += (_, _) =>
+            {
+                _settingsWindow = null;
+                OnSettingsWindowClosed();
+            };
         }
 
         _viewModel.RefreshStorageUsage();
+        _settingsWindow.PositionAtTopCenter();
         _settingsWindow.Show();
         _settingsWindow.Activate();
+    }
+
+    private void OnSettingsWindowClosed()
+    {
+        if (_overlayWindow is not null)
+        {
+            _overlayWindow.FallsBackToPreview = false;
+            if (_overlayWindow.IsPreview)
+            {
+                _overlayWindow.HideOverlay();
+            }
+        }
+
+        _viewModel.DismissSearchInterface();
     }
 
     private async void SelectItem(ClipboardItem item)

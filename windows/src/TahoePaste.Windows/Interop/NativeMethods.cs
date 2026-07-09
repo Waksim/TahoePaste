@@ -12,6 +12,8 @@ internal static class NativeMethods
     internal const ushort VkControl = 0x11;
     internal const ushort VkV = 0x56;
     internal const int SwRestore = 9;
+    internal const int GwlExStyle = -20;
+    internal const long WsExNoActivate = 0x08000000;
 
     [DllImport("user32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
@@ -46,6 +48,13 @@ internal static class NativeMethods
 
     [DllImport("user32.dll")]
     internal static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint processId);
+
+    // The x64-only entry points are fine: the app publishes exclusively as win-x64.
+    [DllImport("user32.dll", SetLastError = true)]
+    internal static extern IntPtr GetWindowLongPtr(IntPtr hWnd, int nIndex);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    internal static extern IntPtr SetWindowLongPtr(IntPtr hWnd, int nIndex, IntPtr dwNewLong);
 
     [DllImport("user32.dll", SetLastError = true)]
     internal static extern uint SendInput(uint nInputs, INPUT[] pInputs, int cbSize);
