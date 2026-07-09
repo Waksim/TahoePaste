@@ -150,7 +150,12 @@ public static class L10n
                 ["settings.layout_bottom_inset"] = "Bottom inset",
                 ["settings.show_timestamps"] = "Show timestamps",
                 ["settings.show_metadata"] = "Show metadata",
-                ["settings.corner_radius"] = "Corner radius",
+                ["settings.card_appearance"] = "Cards",
+                ["settings.corner_radius"] = "Overlay corner radius",
+                ["settings.text_card_corner_radius"] = "Text card corner radius",
+                ["settings.image_card_corner_radius"] = "Image/file card corner radius",
+                ["settings.text_card_shadow"] = "Text card shadow",
+                ["settings.image_card_shadow"] = "Image/file card shadow",
                 ["settings.input_automation"] = "Input automation",
                 ["settings.storage_used"] = "Storage used",
                 ["settings.storage_path"] = "Storage path",
@@ -185,7 +190,8 @@ public static class L10n
                 ["unit.items"] = "{0} items",
                 ["unit.items_saved"] = "{0} saved",
                 ["unit.seconds"] = "{0:0.00} s",
-                ["unit.points"] = "{0} px"
+                ["unit.points"] = "{0} px",
+                ["unit.percent"] = "{0}%"
             },
             [AppLanguage.Russian] = new Dictionary<string, string>
             {
@@ -298,7 +304,12 @@ public static class L10n
                 ["settings.layout_bottom_inset"] = "Нижний отступ",
                 ["settings.show_timestamps"] = "Показывать время",
                 ["settings.show_metadata"] = "Показывать метаданные",
-                ["settings.corner_radius"] = "Скругление",
+                ["settings.card_appearance"] = "Карточки",
+                ["settings.corner_radius"] = "Скругление оверлея",
+                ["settings.text_card_corner_radius"] = "Скругление текстовых карточек",
+                ["settings.image_card_corner_radius"] = "Скругление карточек изображений и файлов",
+                ["settings.text_card_shadow"] = "Тень текстовых карточек",
+                ["settings.image_card_shadow"] = "Тень карточек изображений и файлов",
                 ["settings.input_automation"] = "Автоввод",
                 ["settings.storage_used"] = "Занято",
                 ["settings.storage_path"] = "Путь хранения",
@@ -333,7 +344,8 @@ public static class L10n
                 ["unit.items"] = "{0} элементов",
                 ["unit.items_saved"] = "{0} сохранено",
                 ["unit.seconds"] = "{0:0.00} с",
-                ["unit.points"] = "{0} px"
+                ["unit.points"] = "{0} px",
+                ["unit.percent"] = "{0}%"
             },
             [AppLanguage.SimplifiedChinese] = new Dictionary<string, string>
             {
@@ -400,6 +412,12 @@ public static class L10n
                 ["settings.layout_text_card_width"] = "文本卡片宽度",
                 ["settings.layout_image_card_width"] = "图片卡片宽度",
                 ["settings.layout_bottom_inset"] = "底部边距",
+                ["settings.card_appearance"] = "卡片",
+                ["settings.corner_radius"] = "面板圆角",
+                ["settings.text_card_corner_radius"] = "文本卡片圆角",
+                ["settings.image_card_corner_radius"] = "图片/文件卡片圆角",
+                ["settings.text_card_shadow"] = "文本卡片阴影",
+                ["settings.image_card_shadow"] = "图片/文件卡片阴影",
                 ["status.monitoring_paused"] = "监控已暂停",
                 ["status.monitoring_active"] = "监控中",
                 ["status.hotkey_ready"] = "Ctrl + Shift + C 可用",
@@ -411,7 +429,8 @@ public static class L10n
                 ["unit.items"] = "{0} 项",
                 ["unit.items_saved"] = "已保存 {0} 项",
                 ["unit.seconds"] = "{0:0.00} 秒",
-                ["unit.points"] = "{0} px"
+                ["unit.points"] = "{0} px",
+                ["unit.percent"] = "{0}%"
             }
         };
 }
