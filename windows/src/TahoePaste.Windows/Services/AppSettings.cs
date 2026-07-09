@@ -64,6 +64,10 @@ public sealed class AppSettings : INotifyPropertyChanged
     private bool _showTimestampsOnCards = true;
     private bool _showMetadataOnCards = true;
     private double _cornerRadiusIntensity = 16;
+    private double _textCardCornerRadius = 16;
+    private double _imageCardCornerRadius = 16;
+    private double _textCardShadowIntensity;
+    private double _imageCardShadowIntensity;
     private ThemeMode _themeMode = ThemeMode.System;
     private int _dayThemeStartMinutes = 8 * 60;
     private int _nightThemeStartMinutes = 20 * 60;
@@ -293,6 +297,30 @@ public sealed class AppSettings : INotifyPropertyChanged
     {
         get => _cornerRadiusIntensity;
         set => Set(ref _cornerRadiusIntensity, Clamp(value, 0, 28));
+    }
+
+    public double TextCardCornerRadius
+    {
+        get => _textCardCornerRadius;
+        set => Set(ref _textCardCornerRadius, Clamp(value, 0, 28));
+    }
+
+    public double ImageCardCornerRadius
+    {
+        get => _imageCardCornerRadius;
+        set => Set(ref _imageCardCornerRadius, Clamp(value, 0, 28));
+    }
+
+    public double TextCardShadowIntensity
+    {
+        get => _textCardShadowIntensity;
+        set => Set(ref _textCardShadowIntensity, Clamp(value, 0, 100));
+    }
+
+    public double ImageCardShadowIntensity
+    {
+        get => _imageCardShadowIntensity;
+        set => Set(ref _imageCardShadowIntensity, Clamp(value, 0, 100));
     }
 
     public ThemeMode ThemeMode

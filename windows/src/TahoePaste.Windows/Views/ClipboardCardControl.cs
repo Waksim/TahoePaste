@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Effects;
 using System.Windows.Media.Imaging;
 using TahoePaste.Windows.Localization;
 using TahoePaste.Windows.Models;
@@ -31,23 +32,22 @@ public sealed class ClipboardCardControl : Border
 
         Width = item.UsesImageCardLayout ? layout.TotalImageCardWidth : layout.TotalTextCardWidth;
         Height = layout.TotalCardHeight;
-        CornerRadius = new CornerRadius(Math.Max(settings.CornerRadiusIntensity, 10));
-        ClipToBounds = true;
-        Background = Gradient(palette.CardGradientTop, palette.CardGradientBottom);
+        var cardRadius = item.UsesImageCardLayout ? settings.ImageCardCornerRadius : settings.TextCardCornerRadius;
+        CornerRadius = new CornerRadius(cardRadius);
+        ClipToBounds = false;
+        Background = palette.CardGradientTop;
         BorderBrush = palette.CardBorder;
         BorderThickness = new Thickness(1);
         Margin = new Thickness(0, 0, layout.CardSpacing, 0);
-        Effect = new System.Windows.Media.Effects.DropShadowEffect
-        {
-            BlurRadius = 12,
-            ShadowDepth = 4,
-            Opacity = 0.18
-        };
+        Effect = CardShadow(item.UsesImageCardLayout ? settings.ImageCardShadowIntensity : settings.TextCardShadowIntensity);
         Cursor = Cursors.Hand;
 
-        Child = item.UsesImageCardLayout
+        var content = item.UsesImageCardLayout
             ? BuildImageCard(item, image, settings, palette, layout, activeTagFilter)
             : BuildTextCard(item, settings, palette, layout, activeTagFilter);
+        Child = content;
+        ClipCardContent(content, cardRadius);
+        SizeChanged += (_, _) => ClipCardContent(content, cardRadius);
 
         MouseLeftButtonUp += (_, args) =>
         {
@@ -262,16 +262,33 @@ public sealed class ClipboardCardControl : Border
         Cursor = Cursors.Hand
     };
 
-    private static LinearGradientBrush Gradient(Brush top, Brush bottom)
+    private static DropShadowEffect? CardShadow(double intensity)
     {
-        return new LinearGradientBrush(BrushColor(top), BrushColor(bottom), new Point(0, 0), new Point(1, 1))
+        if (intensity <= 0)
         {
-            Opacity = Math.Min(BrushOpacity(top), BrushOpacity(bottom))
+            return null;
+        }
+
+        var strength = Math.Clamp(intensity / 100.0, 0, 1);
+        return new DropShadowEffect
+        {
+            BlurRadius = 8 + 8 * strength,
+            ShadowDepth = 1 + 4 * strength,
+            Opacity = 0.06 + 0.18 * strength,
+            Color = Colors.Black
         };
     }
 
-    private static Color BrushColor(Brush brush) => brush is SolidColorBrush solid ? solid.Color : Colors.Transparent;
-    private static double BrushOpacity(Brush brush) => brush is SolidColorBrush solid ? solid.Opacity : brush.Opacity;
+    private void ClipCardContent(FrameworkElement content, double radius)
+    {
+        var width = content.ActualWidth > 0 ? content.ActualWidth : Width;
+        var height = content.ActualHeight > 0 ? content.ActualHeight : Height;
+
+        content.Clip = new RectangleGeometry(
+            new Rect(0, 0, Math.Max(0, width), Math.Max(0, height)),
+            radius,
+            radius);
+    }
 
     private static bool IsInsideButton(DependencyObject? source)
     {

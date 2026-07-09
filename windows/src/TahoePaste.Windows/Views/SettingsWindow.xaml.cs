@@ -209,7 +209,12 @@ public partial class SettingsWindow : Window
 
         ShowTimestampsCheck.Content = L10n.Tr("settings.show_timestamps");
         ShowMetadataCheck.Content = L10n.Tr("settings.show_metadata");
+        CardAppearanceLabel.Text = L10n.Tr("settings.card_appearance").ToUpper(L10n.Language.Culture());
         CornerRadiusLabel.Text = L10n.Tr("settings.corner_radius");
+        TextCardCornerRadiusLabel.Text = L10n.Tr("settings.text_card_corner_radius");
+        ImageCardCornerRadiusLabel.Text = L10n.Tr("settings.image_card_corner_radius");
+        TextCardShadowLabel.Text = L10n.Tr("settings.text_card_shadow");
+        ImageCardShadowLabel.Text = L10n.Tr("settings.image_card_shadow");
         InputAutomationLabel.Text = L10n.Tr("settings.input_automation");
         StorageUsedLabel.Text = L10n.Tr("settings.storage_used");
         StoragePathLabel.Text = L10n.Tr("settings.storage_path");
@@ -263,6 +268,14 @@ public partial class SettingsWindow : Window
         ShowMetadataCheck.IsChecked = _settings.ShowMetadataOnCards;
         CornerRadiusSlider.Value = _settings.CornerRadiusIntensity;
         CornerRadiusValue.Text = L10n.Tr("unit.points", (int)Math.Round(_settings.CornerRadiusIntensity));
+        TextCardCornerRadiusSlider.Value = _settings.TextCardCornerRadius;
+        TextCardCornerRadiusValue.Text = L10n.Tr("unit.points", (int)Math.Round(_settings.TextCardCornerRadius));
+        ImageCardCornerRadiusSlider.Value = _settings.ImageCardCornerRadius;
+        ImageCardCornerRadiusValue.Text = L10n.Tr("unit.points", (int)Math.Round(_settings.ImageCardCornerRadius));
+        TextCardShadowSlider.Value = _settings.TextCardShadowIntensity;
+        TextCardShadowValue.Text = L10n.Tr("unit.percent", (int)Math.Round(_settings.TextCardShadowIntensity));
+        ImageCardShadowSlider.Value = _settings.ImageCardShadowIntensity;
+        ImageCardShadowValue.Text = L10n.Tr("unit.percent", (int)Math.Round(_settings.ImageCardShadowIntensity));
         InputAutomationValue.Text = L10n.Tr("settings.not_granted");
         StorageUsedValue.Text = _viewModel.StorageUsageLabel;
         StoragePathValue.Text = _viewModel.ApplicationSupportPath;
@@ -487,6 +500,38 @@ public partial class SettingsWindow : Window
         if (_isRefreshing == false)
         {
             _settings.CornerRadiusIntensity = CornerRadiusSlider.Value;
+        }
+    }
+
+    private void OnTextCardCornerRadiusChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (_isRefreshing == false)
+        {
+            _settings.TextCardCornerRadius = TextCardCornerRadiusSlider.Value;
+        }
+    }
+
+    private void OnImageCardCornerRadiusChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (_isRefreshing == false)
+        {
+            _settings.ImageCardCornerRadius = ImageCardCornerRadiusSlider.Value;
+        }
+    }
+
+    private void OnTextCardShadowChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (_isRefreshing == false)
+        {
+            _settings.TextCardShadowIntensity = TextCardShadowSlider.Value;
+        }
+    }
+
+    private void OnImageCardShadowChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (_isRefreshing == false)
+        {
+            _settings.ImageCardShadowIntensity = ImageCardShadowSlider.Value;
         }
     }
 

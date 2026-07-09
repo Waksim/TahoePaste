@@ -151,13 +151,13 @@ public partial class OverlayWindow : Window
         Left = screenLeft + (screenWidth - width) / 2;
         Top = screenTop + screenHeight - Height - layout.OverlayScreenBottomInset;
 
-        // Square top corners only make sense while the overlay hugs the screen
-        // edges; once it floats, round all four.
+        // When the overlay hugs the bottom of the screen, the visible corners
+        // are at the top edge. Once it floats, round all four.
         var radius = _settings.CornerRadiusIntensity;
         var isDetachedFromScreenEdges = layout.OverlayScreenBottomInset > 0 || layout.OverlayScreenHorizontalInset > 0;
         OverlayBorder.CornerRadius = isDetachedFromScreenEdges
             ? new CornerRadius(radius)
-            : new CornerRadius(0, 0, radius, radius);
+            : new CornerRadius(radius, radius, 0, 0);
         DiagnosticLog.Write($"Overlay positioned screen={screen.DeviceName} areaPx={area.Left},{area.Top},{area.Width},{area.Height} dpiScale={dpiScale.X:0.###},{dpiScale.Y:0.###} left={Left:0} top={Top:0} width={Width:0} height={Height:0}");
     }
 
@@ -381,6 +381,10 @@ public partial class OverlayWindow : Window
         var affectsOverlay = e.PropertyName is nameof(AppSettings.ActiveTheme)
             or nameof(AppSettings.CardSizePreset)
             or nameof(AppSettings.CornerRadiusIntensity)
+            or nameof(AppSettings.TextCardCornerRadius)
+            or nameof(AppSettings.ImageCardCornerRadius)
+            or nameof(AppSettings.TextCardShadowIntensity)
+            or nameof(AppSettings.ImageCardShadowIntensity)
             or nameof(AppSettings.ShowMetadataOnCards)
             or nameof(AppSettings.ShowTimestampsOnCards)
             or nameof(AppSettings.UseAutomaticOverlayLayout)

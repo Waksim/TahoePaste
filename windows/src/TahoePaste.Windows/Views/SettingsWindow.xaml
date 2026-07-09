@@ -130,11 +130,71 @@
                     <StackPanel x:Name="LayoutSlidersPanel" Visibility="Collapsed" />
                     <CheckBox x:Name="ShowTimestampsCheck" Margin="0,12,0,0" Checked="OnShowTimestampsChanged" Unchecked="OnShowTimestampsChanged" />
                     <CheckBox x:Name="ShowMetadataCheck" Margin="0,8,0,0" Checked="OnShowMetadataChanged" Unchecked="OnShowMetadataChanged" />
-                    <DockPanel Margin="0,12,0,0">
-                        <TextBlock x:Name="CornerRadiusLabel" DockPanel.Dock="Left" VerticalAlignment="Center" />
-                        <TextBlock x:Name="CornerRadiusValue" DockPanel.Dock="Right" VerticalAlignment="Center" />
-                    </DockPanel>
+                    <TextBlock x:Name="CardAppearanceLabel"
+                               FontSize="11"
+                               FontWeight="SemiBold"
+                               Margin="0,14,0,0"
+                               Foreground="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}" />
+                    <Grid Margin="0,12,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock x:Name="CornerRadiusLabel" VerticalAlignment="Center" />
+                        <TextBlock x:Name="CornerRadiusValue"
+                                   Grid.Column="1"
+                                   VerticalAlignment="Center"
+                                   TextAlignment="Right" />
+                    </Grid>
                     <Slider x:Name="CornerRadiusSlider" Minimum="0" Maximum="28" TickFrequency="1" IsSnapToTickEnabled="True" ValueChanged="OnCornerRadiusChanged" />
+                    <Grid Margin="0,12,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock x:Name="TextCardCornerRadiusLabel" VerticalAlignment="Center" />
+                        <TextBlock x:Name="TextCardCornerRadiusValue"
+                                   Grid.Column="1"
+                                   VerticalAlignment="Center"
+                                   TextAlignment="Right" />
+                    </Grid>
+                    <Slider x:Name="TextCardCornerRadiusSlider" Minimum="0" Maximum="28" TickFrequency="1" IsSnapToTickEnabled="True" ValueChanged="OnTextCardCornerRadiusChanged" />
+                    <Grid Margin="0,12,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock x:Name="ImageCardCornerRadiusLabel" VerticalAlignment="Center" />
+                        <TextBlock x:Name="ImageCardCornerRadiusValue"
+                                   Grid.Column="1"
+                                   VerticalAlignment="Center"
+                                   TextAlignment="Right" />
+                    </Grid>
+                    <Slider x:Name="ImageCardCornerRadiusSlider" Minimum="0" Maximum="28" TickFrequency="1" IsSnapToTickEnabled="True" ValueChanged="OnImageCardCornerRadiusChanged" />
+                    <Grid Margin="0,12,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock x:Name="TextCardShadowLabel" VerticalAlignment="Center" />
+                        <TextBlock x:Name="TextCardShadowValue"
+                                   Grid.Column="1"
+                                   VerticalAlignment="Center"
+                                   TextAlignment="Right" />
+                    </Grid>
+                    <Slider x:Name="TextCardShadowSlider" Minimum="0" Maximum="100" TickFrequency="5" IsSnapToTickEnabled="True" ValueChanged="OnTextCardShadowChanged" />
+                    <Grid Margin="0,12,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock x:Name="ImageCardShadowLabel" VerticalAlignment="Center" />
+                        <TextBlock x:Name="ImageCardShadowValue"
+                                   Grid.Column="1"
+                                   VerticalAlignment="Center"
+                                   TextAlignment="Right" />
+                    </Grid>
+                    <Slider x:Name="ImageCardShadowSlider" Minimum="0" Maximum="100" TickFrequency="5" IsSnapToTickEnabled="True" ValueChanged="OnImageCardShadowChanged" />
                 </StackPanel>
             </GroupBox>
 
