@@ -118,6 +118,37 @@ public sealed class ClipboardHistoryViewModel : INotifyPropertyChanged
         private set => Set(ref _overlayPresentationId, value);
     }
 
+    // Scroll anchors stay plain properties: the current one changes on every
+    // card boundary while scrolling and must not raise PropertyChanged; the
+    // session one is only read when the overlay re-renders.
+    public Guid? CurrentScrollAnchorId { get; set; }
+
+    public Guid? LastSessionAnchorId { get; private set; }
+
+    // The anchor from the previous interactive session, if jumping back to it
+    // still makes sense: the item must survive in the current visible list and
+    // differ from the leading one (returning to the start is a no-op).
+    public Guid? SessionReturnTargetId
+    {
+        get
+        {
+            if (LastSessionAnchorId is not { } anchorId
+                || VisibleItems.Count == 0
+                || anchorId == VisibleItems[0].Id
+                || VisibleItems.Any(item => item.Id == anchorId) == false)
+            {
+                return null;
+            }
+
+            return anchorId;
+        }
+    }
+
+    public void CaptureSessionAnchor()
+    {
+        LastSessionAnchorId = CurrentScrollAnchorId;
+    }
+
     public IReadOnlyList<ClipboardItem> CurrentHistory => Items.ToArray();
 
     public IReadOnlyList<ClipboardItem> VisibleItems => _visibleItems;
@@ -207,6 +238,11 @@ public sealed class ClipboardHistoryViewModel : INotifyPropertyChanged
         }
 
         SearchQuery = SearchQuery[..^1];
+
+        if (SearchQuery.Length == 0)
+        {
+            IsSearchInterfaceVisible = false;
+        }
     }
 
     public void ClearSearch()
