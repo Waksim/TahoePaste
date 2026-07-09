@@ -98,10 +98,12 @@ jobs:
           } elseif (-not "${{ github.ref }}".StartsWith("refs/tags/")) {
             $version = (git describe --tags --always).TrimStart("v")
           }
+          $numericVersion = if ($version -match '^(\d+(\.\d+){1,3})') { $Matches[1] } else { "0.0.0" }
           $sourceDir = Join-Path $env:GITHUB_WORKSPACE $env:WINDOWS_PUBLISH_DIR
           $outputDir = Join-Path $env:GITHUB_WORKSPACE "windows\dist"
           & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" `
             /DAppVersion="$version" `
+            /DAppNumericVersion="$numericVersion" `
             /DSourceDir="$sourceDir" `
             /DOutputDir="$outputDir" `
             "$env:GITHUB_WORKSPACE\windows\installer\TahoePaste.iss"
