@@ -6,7 +6,9 @@ description: Search, read, and manage the user's clipboard history via the Tahoe
 # TahoePaste clipboard history
 
 TahoePaste is a local clipboard manager. Its bundled CLI gives you read and
-write access to the user's clipboard history. Everything is local — no network.
+write access to the user's clipboard history. The CLI itself sends nothing
+over the network, but content you fetch with `get` enters your context and
+may be processed by your model provider — treat it accordingly.
 
 ## Finding the CLI
 
@@ -22,10 +24,11 @@ The manifest looks like:
   "enabled": true, "schemaVersion": 1 }
 ```
 
-Run commands via `cliPath`. If the file is missing, TahoePaste has never been
-launched — ask the user to install/launch it. If `enabled` is `false` (or the
-CLI exits with code 2), tell the user to enable **Agent access** in TahoePaste
-Settings; do not try to work around it.
+Run commands via `cliPath`. If the file is missing or unreadable, TahoePaste
+has never been launched — ask the user to install/launch it. If `enabled` is
+`false` (or the CLI exits with code 2), tell the user to enable **Agent
+access** in TahoePaste Settings; do not try to work around disabled access or
+read `history.json` directly.
 
 ## Commands
 
@@ -36,7 +39,7 @@ recent [--limit N] [--include-sensitive]
 search <query> [--kind text|image|link|code|file] [--tag T] [--since 30m|2h|7d|ISO8601] [--limit N] [--include-sensitive]
 get <uuid> [--full] [--include-sensitive]
 image <uuid>                # prints the stored PNG path
-copy <uuid>                 # restores the item into the system clipboard
+copy <uuid> [--include-sensitive]   # restores the item into the system clipboard
 add [text]                  # new text → clipboard + history (stdin if no arg)
 delete <uuid>
 ```
@@ -72,5 +75,7 @@ Exit codes: `0` ok, `1` usage/IO error, `2` agent access disabled,
 - Pass `--include-sensitive` only when the user explicitly asks for a
   password/token item, and avoid echoing the secret back into the chat unless
   the user asked to see it.
+- `copy`, `add`, and `delete` change system state. Run them only when the
+  user explicitly asked for that action.
 - `delete` is permanent. Delete only specific items the user pointed at —
   never sweep the history in a loop.
