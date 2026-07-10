@@ -41,6 +41,8 @@
 "overlay.return_to_previous_position" = "返回上次浏览的位置";
 "overlay.search_placeholder" = "搜索剪贴板历史";
 "settings.accessibility" = "辅助功能权限";
+"settings.agent_access" = "允许 AI 代理访问";
+"settings.agent_access_caption" = "允许本地 AI 代理（如 Claude Code）通过内置命令行工具搜索和管理剪贴板历史。被识别为密码或令牌的条目默认隐藏。";
 "settings.auto_layout" = "自动边距";
 "settings.auto_layout_help" = "尺寸和边距跟随卡片大小预设。关闭后可手动微调每个数值。";
 "settings.auto_paste" = "选择后自动粘贴";
@@ -53,6 +55,7 @@
 "settings.delete_all_saved_data" = "删除所有已保存数据";
 "settings.enabled" = "已开启";
 "settings.hotkey_status" = "快捷键状态";
+"settings.install_skill" = "为 Claude Code 安装 skill";
 "settings.language" = "语言";
 "settings.launch_at_login" = "登录时启动";
 "settings.launch_at_login_help" = "在登录这台 Mac 时自动启动 TahoePaste。";
@@ -88,6 +91,7 @@
 "settings.request_accessibility" = "请求辅助功能权限";
 "settings.reveal_application_support" = "在 Finder 中显示 Application Support";
 "settings.saved_items" = "已保存项目";
+"settings.section.agent" = "AI 代理";
 "settings.section.appearance" = "外观";
 "settings.section.clipboard" = "剪贴板";
 "settings.section.general" = "通用";
@@ -132,6 +136,8 @@
 "status.monitoring_paused" = "已暂停监控";
 "status.restore_item_failed" = "无法恢复所选的剪贴板项目。";
 "status.save_latest_failed" = "无法保存最新的剪贴板项目。";
+"status.skill_install_failed" = "无法安装代理 skill。";
+"status.skill_installed" = "代理 skill 已安装到 ~/.claude/skills/tahoepaste。";
 "status.trim_history_failed" = "无法裁剪剪贴板历史记录。";
 "unit.characters" = "%d 个字符";
 "unit.files" = "%d 个文件";

@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+env:
+  DOTNET_VERSION: "10.0.x"
+
+jobs:
+  macos-tests:
+    name: macOS unit tests
+    runs-on: macos-26
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Run tests
+        run: |
+          xcodebuild test \
+            -project TahoePaste.xcodeproj \
+            -scheme TahoePaste \
+            -configuration Debug \
+            -destination 'platform=macOS' \
+            -derivedDataPath .build/DerivedData
+
+  windows-tests:
+    name: Windows unit tests
+    runs-on: windows-2025
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Run tests
+        run: dotnet test windows/src/TahoePaste.Windows.Tests/TahoePaste.Windows.Tests.csproj -c Debug

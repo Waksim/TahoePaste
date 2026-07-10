@@ -82,6 +82,15 @@ The easiest way to try TahoePaste is from the latest GitHub release:
 
 You can also browse all builds on the [Releases](https://github.com/Waksim/TahoePaste/releases) page.
 
+### First launch on a fresh machine
+
+Release builds are not notarized or Authenticode-signed yet, so the OS shows a
+one-time warning:
+
+- **macOS**: right-click `TahoePaste.app` → **Open** → **Open** (or run
+  `xattr -d com.apple.quarantine /Applications/TahoePaste.app`).
+- **Windows**: in the SmartScreen dialog click **More info** → **Run anyway**.
+
 ## Quick Start
 
 1. Copy text, code, images, or files in any app.
@@ -97,6 +106,38 @@ You can also browse all builds on the [Releases](https://github.com/Waksim/Tahoe
 - macOS automatic paste depends on Accessibility permission
 - Windows automatic paste uses `SendInput`; elevated/admin target apps may require manual `Ctrl + V`
 - A stable installed copy is expected at `~/Applications/TahoePaste.app` for reliable macOS permission handling
+
+## AI Agent Access
+
+TahoePaste ships a bundled command-line tool (`tahoepaste-cli`) that lets
+local AI agents such as Claude Code search and manage your clipboard history.
+Setup is two steps:
+
+1. Install and launch TahoePaste.
+2. Open **Settings → AI Agents** and click **Install skill for Claude Code**.
+
+After that, asking Claude Code things like "what did I copy this morning?" or
+"put that screenshot back in my clipboard" just works. Details:
+
+- The agent discovers the CLI through `agent.json` in the app's data
+  directory; the **Allow AI agent access** toggle (on by default) controls it.
+  Turning the toggle off makes the CLI refuse every request.
+- Search results return short previews first; agents fetch full content only
+  for items they actually need.
+- Items recognized by the content classifier as passwords or tokens are
+  hidden unless the agent passes an explicit override flag. This is
+  best-effort: classification reads text only (no OCR of images, no document
+  contents), so treat agent access as trusting the agent with your clipboard.
+- CLI examples:
+
+```bash
+tahoepaste-cli recent --limit 10
+tahoepaste-cli search "invoice" --kind link --since 7d
+tahoepaste-cli get <uuid> --full
+tahoepaste-cli copy <uuid>          # restore an item into the clipboard
+tahoepaste-cli add "new text"       # put new text into clipboard + history
+tahoepaste-cli delete <uuid>
+```
 
 ## Development
 
@@ -231,3 +272,8 @@ All artifacts are uploaded to the same GitHub Release.
 ## Privacy
 
 TahoePaste is built around a simple rule: your clipboard history stays on your device. The app stores data locally, works offline, and does not depend on remote services to classify or restore clipboard content.
+
+AI agent access works through a local CLI only — TahoePaste itself never
+sends anything anywhere. Note that when you let an AI agent read your history,
+that agent may forward the items it retrieves to its own model provider; the
+**Allow AI agent access** toggle in Settings turns the whole surface off.

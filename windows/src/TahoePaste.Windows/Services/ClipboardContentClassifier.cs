@@ -41,6 +41,21 @@ public static partial class ClipboardContentClassifier
         return tags;
     }
 
+    // Uncapped password/token scan of the complete text. DetectedTags only
+    // analyses the first MaxAnalyzedCharacterCount characters, so a secret
+    // past that point never earns a persisted tag; agent-facing single-item
+    // reads re-check the whole payload before revealing it.
+    public static bool ContainsSensitiveContentInFullText(string text)
+    {
+        var trimmed = text.Trim();
+        if (trimmed.Length == 0)
+        {
+            return false;
+        }
+
+        return PasswordContextRegex().IsMatch(trimmed) || LooksLikeToken(trimmed);
+    }
+
     private static string AnalysisText(string text)
     {
         var trimmed = text.Trim();

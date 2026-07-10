@@ -140,6 +140,18 @@
                 </StackPanel>
             </GroupBox>
 
+            <GroupBox x:Name="AgentGroup" Margin="0,0,0,14">
+                <StackPanel Margin="10">
+                    <CheckBox x:Name="AgentAccessCheck" Checked="OnAgentAccessChanged" Unchecked="OnAgentAccessChanged" />
+                    <TextBlock x:Name="AgentAccessCaption"
+                               Margin="0,8,0,0"
+                               FontSize="11"
+                               TextWrapping="Wrap"
+                               Foreground="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}" />
+                    <Button x:Name="InstallSkillButton" HorizontalAlignment="Left" Margin="0,12,0,0" Click="OnInstallSkillClick" />
+                </StackPanel>
+            </GroupBox>
+
             <GroupBox x:Name="StorageGroup" Margin="0,0,0,14">
                 <StackPanel Margin="10">
                     <Grid>

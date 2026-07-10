@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Threading;
 using System.Windows;
 using System.Windows.Threading;
 using TahoePaste.Windows.Localization;
@@ -25,6 +26,9 @@ public sealed class AppHost : IDisposable
     private readonly ClipboardHistoryViewModel _viewModel;
     private readonly PasteActionService _pasteActionService;
     private readonly TrayIconService _trayIconService;
+    private readonly HistoryRepository _historyRepository;
+    private readonly EventWaitHandle _historyChangedEvent;
+    private readonly EventWaitHandle _shutdownEvent = new(false, EventResetMode.ManualReset);
     private OverlayWindow? _overlayWindow;
     private SettingsWindow? _settingsWindow;
     private bool _disposed;
@@ -33,6 +37,11 @@ public sealed class AppHost : IDisposable
     {
         _settingsStore = new SettingsStore(_paths);
         _storageService = new StorageService(_paths);
+        _historyRepository = new HistoryRepository(_storageService);
+        _historyChangedEvent = new EventWaitHandle(
+            false,
+            EventResetMode.AutoReset,
+            AgentManifest.HistoryChangedEventName);
         _settings = _settingsStore.Load();
         _settings.LaunchAtLogin = _startupService.IsEnabled();
         L10n.Language = _settings.AppLanguage;
@@ -87,6 +96,54 @@ public sealed class AppHost : IDisposable
 
         _trayIconService.Start();
         _themeTimer.Start();
+
+        WriteAgentManifest();
+        StartExternalHistoryChangeListener();
+    }
+
+    private void WriteAgentManifest()
+    {
+        try
+        {
+            AgentManifest.Current(_settings.AgentAccessEnabled).Write(_paths);
+        }
+        catch (Exception ex)
+        {
+            DiagnosticLog.Write($"Agent manifest write failed {ex}");
+        }
+    }
+
+    private void StartExternalHistoryChangeListener()
+    {
+        var listener = new Thread(() =>
+        {
+            var handles = new WaitHandle[] { _shutdownEvent, _historyChangedEvent };
+
+            while (WaitHandle.WaitAny(handles) == 1)
+            {
+                Application.Current?.Dispatcher.BeginInvoke(ReloadHistoryFromDisk);
+            }
+        })
+        {
+            IsBackground = true,
+            Name = "TahoePaste.ExternalHistoryChangeListener"
+        };
+
+        listener.Start();
+    }
+
+    // Refresh from disk after an external mutation (CLI add/delete). Plain
+    // snapshot read — repair and migration already ran at launch.
+    private void ReloadHistoryFromDisk()
+    {
+        try
+        {
+            _viewModel.ReplaceHistory(_historyRepository.ReadSnapshot());
+        }
+        catch
+        {
+            _viewModel.SetStatusMessage(L10n.Tr("status.load_history_failed"));
+        }
     }
 
     private void BindActions()
@@ -105,7 +162,7 @@ public sealed class AppHost : IDisposable
     {
         try
         {
-            _viewModel.ReplaceHistory(_storageService.LoadHistory());
+            _viewModel.ReplaceHistory(_historyRepository.RepairAndMigrate());
         }
         catch
         {
@@ -153,6 +210,11 @@ public sealed class AppHost : IDisposable
                 ApplyHistoryLimitIfNeeded();
             }
 
+            if (args.PropertyName == nameof(AppSettings.AgentAccessEnabled))
+            {
+                WriteAgentManifest();
+            }
+
             ScheduleSettingsSave();
         };
     }
@@ -183,21 +245,17 @@ public sealed class AppHost : IDisposable
 
         try
         {
-            var item = _storageService.Store(payload);
-            var updatedHistory = TrimmedHistoryWithNewestItem(item);
-            _viewModel.ReplaceHistory(updatedHistory);
-            _storageService.SaveHistory(updatedHistory);
+            var outcome = _historyRepository.Append(payload, _settings.HistoryLimit);
+
+            if (outcome.WasDeduplicated == false)
+            {
+                _viewModel.ReplaceHistory(outcome.History);
+            }
         }
         catch
         {
             _viewModel.SetStatusMessage(L10n.Tr("status.save_latest_failed"));
         }
-    }
-
-    private IReadOnlyList<ClipboardItem> TrimmedHistoryWithNewestItem(ClipboardItem item)
-    {
-        var history = new[] { item }.Concat(_viewModel.CurrentHistory).ToArray();
-        return _settings.HistoryLimit is { } limit ? history.Take(limit).ToArray() : history;
     }
 
     private void ShowOverlay()
@@ -254,12 +312,10 @@ public sealed class AppHost : IDisposable
 
     private void DeleteItem(ClipboardItem item)
     {
-        var updatedHistory = _viewModel.CurrentHistory.Where(entry => entry.Id != item.Id).ToArray();
-
         try
         {
-            _viewModel.ReplaceHistory(updatedHistory);
-            _storageService.SaveHistory(updatedHistory);
+            var outcome = _historyRepository.Delete(item.Id);
+            _viewModel.ReplaceHistory(outcome.History);
         }
         catch
         {
@@ -271,8 +327,7 @@ public sealed class AppHost : IDisposable
     {
         try
         {
-            _storageService.ClearHistory();
-            _viewModel.ReplaceHistory([]);
+            _viewModel.ReplaceHistory(_historyRepository.Clear());
             _viewModel.SetStatusMessage(L10n.Tr("status.history_cleared"));
         }
         catch
@@ -288,16 +343,14 @@ public sealed class AppHost : IDisposable
             return;
         }
 
-        var trimmed = _viewModel.CurrentHistory.Take(limit).ToArray();
-        if (trimmed.Length == _viewModel.CurrentHistory.Count)
+        if (_viewModel.CurrentHistory.Count <= limit)
         {
             return;
         }
 
         try
         {
-            _viewModel.ReplaceHistory(trimmed);
-            _storageService.SaveHistory(trimmed);
+            _viewModel.ReplaceHistory(_historyRepository.Trim(limit));
         }
         catch
         {
@@ -313,6 +366,7 @@ public sealed class AppHost : IDisposable
         }
 
         _disposed = true;
+        _shutdownEvent.Set();
         _settingsSaveTimer.Stop();
         _themeTimer.Stop();
         _settingsStore.Save(_settings);
@@ -321,5 +375,7 @@ public sealed class AppHost : IDisposable
         _trayIconService.Dispose();
         _overlayWindow?.Close();
         _settingsWindow?.Close();
+        _historyChangedEvent.Dispose();
+        _shutdownEvent.Dispose();
     }
 }

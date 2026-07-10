@@ -34,6 +34,7 @@ public sealed class AppSettings : INotifyPropertyChanged
     private bool _captureText = true;
     private bool _captureImages = true;
     private bool _isMonitoringPaused;
+    private bool _agentAccessEnabled = true;
     private int _maximumHistoryItems = 200;
     private int _lastFiniteHistoryItems = 200;
     private bool _autoPasteAfterSelection = true;
@@ -85,6 +86,12 @@ public sealed class AppSettings : INotifyPropertyChanged
     {
         get => _isMonitoringPaused;
         set => Set(ref _isMonitoringPaused, value);
+    }
+
+    public bool AgentAccessEnabled
+    {
+        get => _agentAccessEnabled;
+        set => Set(ref _agentAccessEnabled, value);
     }
 
     public int MaximumHistoryItems

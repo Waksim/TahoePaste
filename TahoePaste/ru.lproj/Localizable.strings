@@ -41,6 +41,8 @@
 "overlay.return_to_previous_position" = "Вернуться к прошлой позиции";
 "overlay.search_placeholder" = "Поиск по истории буфера";
 "settings.accessibility" = "Универсальный доступ";
+"settings.agent_access" = "Доступ для ИИ-агентов";
+"settings.agent_access_caption" = "Разрешает локальным ИИ-агентам (например, Claude Code) искать и управлять историей буфера через встроенную командную утилиту. Записи, распознанные как пароли и токены, по умолчанию скрыты.";
 "settings.auto_layout" = "Автоматические отступы";
 "settings.auto_layout_help" = "Размеры и отступы подбираются по пресету карточек. Выключи, чтобы настроить каждое значение вручную.";
 "settings.auto_paste" = "Автовставка после выбора";
@@ -53,6 +55,7 @@
 "settings.delete_all_saved_data" = "Удалить все сохранённые данные";
 "settings.enabled" = "Включён";
 "settings.hotkey_status" = "Статус горячей клавиши";
+"settings.install_skill" = "Установить skill для Claude Code";
 "settings.language" = "Язык";
 "settings.launch_at_login" = "Запускать при входе";
 "settings.launch_at_login_help" = "Автоматически запускать TahoePaste после входа в этот Mac.";
@@ -88,6 +91,7 @@
 "settings.request_accessibility" = "Запросить доступ";
 "settings.reveal_application_support" = "Открыть папку Application Support";
 "settings.saved_items" = "Сохранено элементов";
+"settings.section.agent" = "ИИ-агенты";
 "settings.section.appearance" = "Внешний вид";
 "settings.section.clipboard" = "Буфер обмена";
 "settings.section.general" = "Общие";
@@ -132,6 +136,8 @@
 "status.monitoring_paused" = "Мониторинг на паузе";
 "status.restore_item_failed" = "Не удалось восстановить выбранный элемент буфера.";
 "status.save_latest_failed" = "Не удалось сохранить последний элемент буфера.";
+"status.skill_install_failed" = "Не удалось установить skill для агента.";
+"status.skill_installed" = "Skill установлен в ~/.claude/skills/tahoepaste.";
 "status.trim_history_failed" = "Не удалось сократить историю буфера.";
 "unit.characters" = "%d симв.";
 "unit.files" = "%d файлов";

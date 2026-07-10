@@ -34,4 +34,8 @@
     <Resource Include="Assets\tahoepaste.png" />
     <Resource Include="Assets\tahoepaste.ico" />
   </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\..\docs\agent\SKILL.md" Link="skill\tahoepaste\SKILL.md" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 </Project>

@@ -5,6 +5,7 @@ import CoreGraphics
 @MainActor
 final class AccessibilityPermissionManager {
     private let hasPromptedKey = "TahoePasteHasPromptedForAccessibility"
+    private let promptedExecutableIdentityKey = "TahoePasteAccessibilityPromptedExecutableIdentity"
     private let accessibilityPromptOptionKey = "AXTrustedCheckOptionPrompt"
 
     @discardableResult
@@ -13,17 +14,28 @@ final class AccessibilityPermissionManager {
             || AXIsProcessTrustedWithOptions(nil)
             || AXIsProcessTrustedWithOptions(axTrustOptions(prompt: false))
         let postEventTrusted = CGPreflightPostEventAccess()
-        let accessibilityAPIResponding = probeAccessibilityAPI()
-        return accessibilityTrusted || postEventTrusted || accessibilityAPIResponding
+        return accessibilityTrusted || postEventTrusted
     }
 
     func requestAccessibilityIfNeededOnFirstLaunch() {
         let defaults = UserDefaults.standard
-        guard defaults.bool(forKey: hasPromptedKey) == false else {
+        guard refreshTrustStatus() == false else {
+            return
+        }
+
+        let executableIdentity = currentExecutableIdentity()
+        let promptedIdentity = defaults.string(forKey: promptedExecutableIdentityKey)
+        let shouldPrompt = defaults.bool(forKey: hasPromptedKey) == false
+            || executableIdentity != promptedIdentity
+
+        guard shouldPrompt else {
             return
         }
 
         defaults.set(true, forKey: hasPromptedKey)
+        if let executableIdentity {
+            defaults.set(executableIdentity, forKey: promptedExecutableIdentityKey)
+        }
         requestAccessibilityAccess()
     }
 
@@ -44,20 +56,14 @@ final class AccessibilityPermissionManager {
         [accessibilityPromptOptionKey: prompt] as CFDictionary
     }
 
-    private func probeAccessibilityAPI() -> Bool {
-        let systemWideElement = AXUIElementCreateSystemWide()
-        var value: CFTypeRef?
-        let result = AXUIElementCopyAttributeValue(
-            systemWideElement,
-            kAXFocusedApplicationAttribute as CFString,
-            &value
-        )
-
-        switch result {
-        case .success, .cannotComplete:
-            return true
-        default:
-            return false
+    private func currentExecutableIdentity() -> String? {
+        guard let executableURL = Bundle.main.executableURL else {
+            return nil
         }
+
+        let modificationDate = try? executableURL.resourceValues(forKeys: [.contentModificationDateKey])
+            .contentModificationDate?
+            .timeIntervalSince1970
+        return "\(executableURL.path)#\(modificationDate ?? 0)"
     }
 }

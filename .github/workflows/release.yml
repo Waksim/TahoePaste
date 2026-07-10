@@ -17,7 +17,9 @@ permissions:
 env:
   DOTNET_VERSION: "10.0.x"
   WINDOWS_PROJECT: windows/src/TahoePaste.Windows/TahoePaste.Windows.csproj
+  WINDOWS_CLI_PROJECT: windows/src/TahoePaste.Cli/TahoePaste.Cli.csproj
   WINDOWS_PUBLISH_DIR: windows/src/TahoePaste.Windows/bin/Release/net10.0-windows10.0.26100.0/win-x64/publish
+  WINDOWS_CLI_PUBLISH_DIR: windows/src/TahoePaste.Cli/bin/Release/net10.0-windows10.0.26100.0/win-x64/publish
 
 jobs:
   macos:
@@ -64,10 +66,18 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Restore
-        run: dotnet restore $env:WINDOWS_PROJECT -r win-x64
+        run: |
+          dotnet restore $env:WINDOWS_PROJECT -r win-x64
+          dotnet restore $env:WINDOWS_CLI_PROJECT -r win-x64
 
       - name: Publish
-        run: dotnet publish $env:WINDOWS_PROJECT -c Release -r win-x64 --self-contained true --no-restore
+        run: |
+          dotnet publish $env:WINDOWS_PROJECT -c Release -r win-x64 --self-contained true --no-restore
+          dotnet publish $env:WINDOWS_CLI_PROJECT -c Release -r win-x64 --self-contained true --no-restore
+
+      - name: Bundle CLI into app publish directory
+        shell: pwsh
+        run: Copy-Item "$env:WINDOWS_CLI_PUBLISH_DIR\tahoepaste-cli.exe" -Destination $env:WINDOWS_PUBLISH_DIR -Force
 
       - name: Package portable zip
         shell: pwsh
