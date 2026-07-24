@@ -10,34 +10,66 @@
 		00878BB02AD692CA0453CC29 /* AccessibilityPermissionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BA59F6AA2066FDE5B5C6A67 /* AccessibilityPermissionManager.swift */; };
 		02E7E92A9BAD4CCE7B117187 /* ClipboardContentClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = E32140C0FC6744E00AA1D46F /* ClipboardContentClassifier.swift */; };
 		02F46F9E08BD5EEC030CC60D /* OverlayWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1382C1DD949D9F1F524296D9 /* OverlayWindowController.swift */; };
+		053532DFB32E916C5EE78895 /* AgentSkillInstaller.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD24F5743EEB7A1477DD7D1F /* AgentSkillInstaller.swift */; };
 		08F585662EA822F037F536F3 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74A22A765640C176CCCF227C /* SettingsView.swift */; };
+		0A163337B7F4F6713FA3EB57 /* AgentCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74C1AAE91505C136FF2872F7 /* AgentCommand.swift */; };
 		18E8CF6BF2E4E9257993976A /* L10n.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD9D0066E68E9AFB605ACFA2 /* L10n.swift */; };
 		18F4C57F07569ACEF7CBEABC /* AppCommands.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EB4D063158AE83A1A8C0D82 /* AppCommands.swift */; };
+		1FD3FA00D19F9C293FC01564 /* AgentCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74C1AAE91505C136FF2872F7 /* AgentCommand.swift */; };
+		278FF2A2257EF589D2C7BD2C /* AgentQueryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8323C68256B032847A20A52 /* AgentQueryService.swift */; };
+		2B4C4FA8F7E32A32438FB673 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 778D05F22FAB9271B4B09AD4 /* main.swift */; };
+		2C412A5C6476F22E87F0B11F /* HistoryRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7AB2DA1B0134438505B18AC9 /* HistoryRepository.swift */; };
+		31354A0A19CD695B858E64C3 /* StorageManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 611E0B2BE3E96B1F5D903C36 /* StorageManager.swift */; };
+		329CE663B25EC97AA4328677 /* L10n.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD9D0066E68E9AFB605ACFA2 /* L10n.swift */; };
 		333DDC543FCB4B9644298BFD /* ClipboardManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBA78438809312D245CF9E0E /* ClipboardManager.swift */; };
 		439F75D97902482CC60A5C50 /* ClipboardSearchEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 765FB33F69CE0CD06A4562B0 /* ClipboardSearchEngine.swift */; };
 		44CDB3382B0FB64DA066FBAD /* ClipboardItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7353AB61982940BD95803E08 /* ClipboardItem.swift */; };
 		4B1FE31615E506DB7D7C6D7A /* ClipboardHistoryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 488BC6119C96BCB6AB725334 /* ClipboardHistoryViewModel.swift */; };
+		4F3C153C8702288D97B1A88C /* KeyboardLayoutMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50D67FBB8FBE28D24788D1AD /* KeyboardLayoutMapper.swift */; };
+		59D4EB6BB5D85DEFF7F88012 /* AppLanguage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39983B8844F4D211AF47CB1C /* AppLanguage.swift */; };
 		63FD50A4444ED901D4BBA8A2 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = F7B0169F14B07A8A0E1A18D3 /* Localizable.strings */; };
 		66AEBD29AC2766AC6CC7B8D0 /* AppLanguage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39983B8844F4D211AF47CB1C /* AppLanguage.swift */; };
+		6A6D9880002B48C289531A3B /* ClipboardItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7353AB61982940BD95803E08 /* ClipboardItem.swift */; };
+		6B799F24A12EB6CB2582A469 /* AgentQueryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8323C68256B032847A20A52 /* AgentQueryService.swift */; };
+		6E802E32A14CF25AB86E604B /* PasteboardItemWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 053313682CDA6993895CBCDE /* PasteboardItemWriter.swift */; };
 		70913E74AFE69246AC912210 /* StorageManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 611E0B2BE3E96B1F5D903C36 /* StorageManager.swift */; };
 		739F122E7AB01A9EB5656B83 /* MenuBarIconView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BAA387C20982BAFA7374FE63 /* MenuBarIconView.swift */; };
+		88F15EF8BFDF29667D9D892C /* ClipboardContentClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = E32140C0FC6744E00AA1D46F /* ClipboardContentClassifier.swift */; };
 		9425FE18D81F949FC6ACC766 /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC6BB5A91566E9E5CAE5F428 /* MenuBarView.swift */; };
 		947D68A485DA3F7F895256F0 /* TahoePasteTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 041C9B33F3C21AD701210B82 /* TahoePasteTests.swift */; };
+		9E471E44BFC4EA779F7D9837 /* ClipboardPayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F4098AD31D6303779810A94 /* ClipboardPayload.swift */; };
 		A4F8E73042D04B2FB06FE0E2 /* SettingsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29CA645B0F555CA35197100A /* SettingsManager.swift */; };
 		A604FBEB3245B8F8966EAE1B /* HotkeyController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2504E01ACF6D4C05BEFB7E56 /* HotkeyController.swift */; };
 		A65CE55F6174A1E6792A79DB /* SettingsWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89F1266C1564F05F55C46C2F /* SettingsWindowController.swift */; };
 		A9738B062C0401864DD7AF56 /* MenuBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3058E55DF0F6C1F3860509A9 /* MenuBarController.swift */; };
+		AE94DE749CC2CBEBA534165B /* AgentSkillInstaller.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD24F5743EEB7A1477DD7D1F /* AgentSkillInstaller.swift */; };
+		AFB7BF06AC94D0A0D0F5ABD2 /* AgentManifest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01B1B41C9469D9DBF3D05068 /* AgentManifest.swift */; };
 		B8655A379B2678997F1BDFDA /* PasteActionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DEACCF59F534489A8AF9981 /* PasteActionController.swift */; };
+		BBD5B6F2B7C81F68F2E36073 /* SKILL.md in Resources */ = {isa = PBXBuildFile; fileRef = FA663B73DC8A9AF89ADE7E04 /* SKILL.md */; };
 		BF7F559E4A124A3FB5FE6B3E /* KeyboardLayoutMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50D67FBB8FBE28D24788D1AD /* KeyboardLayoutMapper.swift */; };
+		C15E709EA8A01F38A8AC16D6 /* ClipboardTagCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = A429AA30E9B902AF73DE415A /* ClipboardTagCache.swift */; };
+		C203D952796C021911C64CFF /* AgentManifest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01B1B41C9469D9DBF3D05068 /* AgentManifest.swift */; };
 		C39EE48CC423AC16724E38F2 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1FB8474CB31ABBBA88C9750F /* Assets.xcassets */; };
 		CAC6C3536F8369CBEB9C09B7 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D578E696935D0839EB66DB5 /* AppDelegate.swift */; };
 		CC4FC596BB9FDFCE7CB15B82 /* OverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2744CC57453CAB087F1CAE7 /* OverlayView.swift */; };
+		CD5BB2E183FD87972BCEC6DC /* ClipboardSearchEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 765FB33F69CE0CD06A4562B0 /* ClipboardSearchEngine.swift */; };
+		CF577134B29BAFC5EB573BAF /* PasteboardItemWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 053313682CDA6993895CBCDE /* PasteboardItemWriter.swift */; };
 		D5E6C0CE85851CFDAF6D7B81 /* ClipboardCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E8C84D71E2AF21A3462D463 /* ClipboardCardView.swift */; };
+		DEE22CDAF2BFF8453AC5B7CA /* HistoryRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7AB2DA1B0134438505B18AC9 /* HistoryRepository.swift */; };
 		DFA77BE409885C4BD79205A7 /* ClipboardTagCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = A429AA30E9B902AF73DE415A /* ClipboardTagCache.swift */; };
 		E9CAEF043EC773A3A80A1384 /* TahoePasteApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = F93326CCA5CBC08FB32409A0 /* TahoePasteApp.swift */; };
+		ECD31667D2309E602F7F8C6B /* tahoepaste-cli in Embed Dependencies */ = {isa = PBXBuildFile; fileRef = CFB244E04A18385C05A49236 /* tahoepaste-cli */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		FA7067498C78AE4D4DD7207C /* ClipboardPayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F4098AD31D6303779810A94 /* ClipboardPayload.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		2D8D9E4C0324F289446775B4 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 4E49C189E9FB5B02DFCC2C96 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 9DD44BFBAC324DB41BE2B4B8;
+			remoteInfo = "tahoepaste-cli";
+		};
 		70A7C1582906A9F9B00175DB /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 4E49C189E9FB5B02DFCC2C96 /* Project object */;
@@ -47,8 +79,24 @@
 		};
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		3C6271CAB81122E98AFCCD74 /* Embed Dependencies */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 6;
+			files = (
+				ECD31667D2309E602F7F8C6B /* tahoepaste-cli in Embed Dependencies */,
+			);
+			name = "Embed Dependencies";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		01B1B41C9469D9DBF3D05068 /* AgentManifest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentManifest.swift; sourceTree = "<group>"; };
 		041C9B33F3C21AD701210B82 /* TahoePasteTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TahoePasteTests.swift; sourceTree = "<group>"; };
+		053313682CDA6993895CBCDE /* PasteboardItemWriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PasteboardItemWriter.swift; sourceTree = "<group>"; };
 		1382C1DD949D9F1F524296D9 /* OverlayWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayWindowController.swift; sourceTree = "<group>"; };
 		1FB8474CB31ABBBA88C9750F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		220F91F15940320133DB40D4 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
@@ -68,22 +116,38 @@
 		6C6AA69B17D59CDA6FBB5447 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		7353AB61982940BD95803E08 /* ClipboardItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardItem.swift; sourceTree = "<group>"; };
 		74A22A765640C176CCCF227C /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		74C1AAE91505C136FF2872F7 /* AgentCommand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentCommand.swift; sourceTree = "<group>"; };
 		765FB33F69CE0CD06A4562B0 /* ClipboardSearchEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardSearchEngine.swift; sourceTree = "<group>"; };
+		778D05F22FAB9271B4B09AD4 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
+		7AB2DA1B0134438505B18AC9 /* HistoryRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryRepository.swift; sourceTree = "<group>"; };
 		89F1266C1564F05F55C46C2F /* SettingsWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsWindowController.swift; sourceTree = "<group>"; };
 		8DEACCF59F534489A8AF9981 /* PasteActionController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PasteActionController.swift; sourceTree = "<group>"; };
+		8F4098AD31D6303779810A94 /* ClipboardPayload.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardPayload.swift; sourceTree = "<group>"; };
 		967FBD4A015513E6A100F9F9 /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/Localizable.strings; sourceTree = "<group>"; };
 		A429AA30E9B902AF73DE415A /* ClipboardTagCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardTagCache.swift; sourceTree = "<group>"; };
+		AD24F5743EEB7A1477DD7D1F /* AgentSkillInstaller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentSkillInstaller.swift; sourceTree = "<group>"; };
 		BAA387C20982BAFA7374FE63 /* MenuBarIconView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarIconView.swift; sourceTree = "<group>"; };
+		CFB244E04A18385C05A49236 /* tahoepaste-cli */ = {isa = PBXFileReference; includeInIndex = 0; path = "tahoepaste-cli"; sourceTree = BUILT_PRODUCTS_DIR; };
 		D2744CC57453CAB087F1CAE7 /* OverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayView.swift; sourceTree = "<group>"; };
+		D8323C68256B032847A20A52 /* AgentQueryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentQueryService.swift; sourceTree = "<group>"; };
 		DC6BB5A91566E9E5CAE5F428 /* MenuBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarView.swift; sourceTree = "<group>"; };
 		E32140C0FC6744E00AA1D46F /* ClipboardContentClassifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardContentClassifier.swift; sourceTree = "<group>"; };
 		EBA78438809312D245CF9E0E /* ClipboardManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardManager.swift; sourceTree = "<group>"; };
 		F48A6BA3A4C456062608D3AF /* TahoePasteTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TahoePasteTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		F93326CCA5CBC08FB32409A0 /* TahoePasteApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TahoePasteApp.swift; sourceTree = "<group>"; };
+		FA663B73DC8A9AF89ADE7E04 /* SKILL.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = SKILL.md; sourceTree = "<group>"; };
 		FD9D0066E68E9AFB605ACFA2 /* L10n.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = L10n.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
+		35913B331BE0649497959E0C /* TahoePasteCLI */ = {
+			isa = PBXGroup;
+			children = (
+				778D05F22FAB9271B4B09AD4 /* main.swift */,
+			);
+			path = TahoePasteCLI;
+			sourceTree = "<group>";
+		};
 		47D2BC87F9B6D1FC61BF4405 /* ViewModels */ = {
 			isa = PBXGroup;
 			children = (
@@ -100,11 +164,13 @@
 				1FB8474CB31ABBBA88C9750F /* Assets.xcassets */,
 				5160FDD333ECCA4CB1CDF1C9 /* Info.plist */,
 				F93326CCA5CBC08FB32409A0 /* TahoePasteApp.swift */,
+				502CFBCDC470D0953385BE31 /* Agent */,
 				F7B0169F14B07A8A0E1A18D3 /* Localizable.strings */,
 				62CCBFFEE3985D724CDCDC6E /* Localization */,
 				651289901A62897ACC5D2A90 /* Managers */,
 				ED3865AE3F8C3B96B476AAFB /* Models */,
 				5915981730CFF37AF8E53F42 /* Search */,
+				93A3827DEDA0DFB3AEE22727 /* Storage */,
 				47D2BC87F9B6D1FC61BF4405 /* ViewModels */,
 				FF6B81D4016B524C3F644D0D /* Views */,
 				9BE876821322D363DA784AE5 /* Windows */,
@@ -112,9 +178,22 @@
 			path = TahoePaste;
 			sourceTree = "<group>";
 		};
+		502CFBCDC470D0953385BE31 /* Agent */ = {
+			isa = PBXGroup;
+			children = (
+				74C1AAE91505C136FF2872F7 /* AgentCommand.swift */,
+				01B1B41C9469D9DBF3D05068 /* AgentManifest.swift */,
+				D8323C68256B032847A20A52 /* AgentQueryService.swift */,
+				AD24F5743EEB7A1477DD7D1F /* AgentSkillInstaller.swift */,
+				053313682CDA6993895CBCDE /* PasteboardItemWriter.swift */,
+			);
+			path = Agent;
+			sourceTree = "<group>";
+		};
 		526AABD4A40C5DE88B476ABB /* Products */ = {
 			isa = PBXGroup;
 			children = (
+				CFB244E04A18385C05A49236 /* tahoepaste-cli */,
 				33BB9C09D335654A787CFFEC /* TahoePaste.app */,
 				F48A6BA3A4C456062608D3AF /* TahoePasteTests.xctest */,
 			);
@@ -156,10 +235,20 @@
 		918105571EB0FAAE5F907140 = {
 			isa = PBXGroup;
 			children = (
+				D1804FA91FA097E04C6735D5 /* agent */,
 				4F6C9C265860EBD2A690A165 /* TahoePaste */,
+				35913B331BE0649497959E0C /* TahoePasteCLI */,
 				AC7210FE9E1E6FBFCEF52BF2 /* TahoePasteTests */,
 				526AABD4A40C5DE88B476ABB /* Products */,
 			);
+			sourceTree = "<group>";
+		};
+		93A3827DEDA0DFB3AEE22727 /* Storage */ = {
+			isa = PBXGroup;
+			children = (
+				7AB2DA1B0134438505B18AC9 /* HistoryRepository.swift */,
+			);
+			path = Storage;
 			sourceTree = "<group>";
 		};
 		9BE876821322D363DA784AE5 /* Windows */ = {
@@ -179,11 +268,21 @@
 			path = TahoePasteTests;
 			sourceTree = "<group>";
 		};
+		D1804FA91FA097E04C6735D5 /* agent */ = {
+			isa = PBXGroup;
+			children = (
+				FA663B73DC8A9AF89ADE7E04 /* SKILL.md */,
+			);
+			name = agent;
+			path = docs/agent;
+			sourceTree = "<group>";
+		};
 		ED3865AE3F8C3B96B476AAFB /* Models */ = {
 			isa = PBXGroup;
 			children = (
 				E32140C0FC6744E00AA1D46F /* ClipboardContentClassifier.swift */,
 				7353AB61982940BD95803E08 /* ClipboardItem.swift */,
+				8F4098AD31D6303779810A94 /* ClipboardPayload.swift */,
 				A429AA30E9B902AF73DE415A /* ClipboardTagCache.swift */,
 			);
 			path = Models;
@@ -210,10 +309,12 @@
 			buildPhases = (
 				770A300DC80F07AF03351FDD /* Sources */,
 				C186890164CAA8D9FBDA4B10 /* Resources */,
+				3C6271CAB81122E98AFCCD74 /* Embed Dependencies */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				187A1070A2427F929EE3C5E5 /* PBXTargetDependency */,
 			);
 			name = TahoePaste;
 			packageProductDependencies = (
@@ -221,6 +322,23 @@
 			productName = TahoePaste;
 			productReference = 33BB9C09D335654A787CFFEC /* TahoePaste.app */;
 			productType = "com.apple.product-type.application";
+		};
+		9DD44BFBAC324DB41BE2B4B8 /* tahoepaste-cli */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 54805CAA6B7A10213B39E499 /* Build configuration list for PBXNativeTarget "tahoepaste-cli" */;
+			buildPhases = (
+				3A5B1AC8981958EA78BDB9E9 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "tahoepaste-cli";
+			packageProductDependencies = (
+			);
+			productName = "tahoepaste-cli";
+			productReference = CFB244E04A18385C05A49236 /* tahoepaste-cli */;
+			productType = "com.apple.product-type.tool";
 		};
 		D04277EA39F64B2C377FC753 /* TahoePasteTests */ = {
 			isa = PBXNativeTarget;
@@ -252,6 +370,9 @@
 					3AFAA53154A51624BCB33650 = {
 						ProvisioningStyle = Automatic;
 					};
+					9DD44BFBAC324DB41BE2B4B8 = {
+						ProvisioningStyle = Automatic;
+					};
 					D04277EA39F64B2C377FC753 = {
 						ProvisioningStyle = Automatic;
 					};
@@ -275,6 +396,7 @@
 			targets = (
 				3AFAA53154A51624BCB33650 /* TahoePaste */,
 				D04277EA39F64B2C377FC753 /* TahoePasteTests */,
+				9DD44BFBAC324DB41BE2B4B8 /* tahoepaste-cli */,
 			);
 		};
 /* End PBXProject section */
@@ -286,17 +408,45 @@
 			files = (
 				C39EE48CC423AC16724E38F2 /* Assets.xcassets in Resources */,
 				63FD50A4444ED901D4BBA8A2 /* Localizable.strings in Resources */,
+				BBD5B6F2B7C81F68F2E36073 /* SKILL.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		3A5B1AC8981958EA78BDB9E9 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1FD3FA00D19F9C293FC01564 /* AgentCommand.swift in Sources */,
+				C203D952796C021911C64CFF /* AgentManifest.swift in Sources */,
+				278FF2A2257EF589D2C7BD2C /* AgentQueryService.swift in Sources */,
+				053532DFB32E916C5EE78895 /* AgentSkillInstaller.swift in Sources */,
+				59D4EB6BB5D85DEFF7F88012 /* AppLanguage.swift in Sources */,
+				88F15EF8BFDF29667D9D892C /* ClipboardContentClassifier.swift in Sources */,
+				6A6D9880002B48C289531A3B /* ClipboardItem.swift in Sources */,
+				FA7067498C78AE4D4DD7207C /* ClipboardPayload.swift in Sources */,
+				CD5BB2E183FD87972BCEC6DC /* ClipboardSearchEngine.swift in Sources */,
+				C15E709EA8A01F38A8AC16D6 /* ClipboardTagCache.swift in Sources */,
+				DEE22CDAF2BFF8453AC5B7CA /* HistoryRepository.swift in Sources */,
+				4F3C153C8702288D97B1A88C /* KeyboardLayoutMapper.swift in Sources */,
+				329CE663B25EC97AA4328677 /* L10n.swift in Sources */,
+				6E802E32A14CF25AB86E604B /* PasteboardItemWriter.swift in Sources */,
+				31354A0A19CD695B858E64C3 /* StorageManager.swift in Sources */,
+				2B4C4FA8F7E32A32438FB673 /* main.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		770A300DC80F07AF03351FDD /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 				00878BB02AD692CA0453CC29 /* AccessibilityPermissionManager.swift in Sources */,
+				0A163337B7F4F6713FA3EB57 /* AgentCommand.swift in Sources */,
+				AFB7BF06AC94D0A0D0F5ABD2 /* AgentManifest.swift in Sources */,
+				6B799F24A12EB6CB2582A469 /* AgentQueryService.swift in Sources */,
+				AE94DE749CC2CBEBA534165B /* AgentSkillInstaller.swift in Sources */,
 				18F4C57F07569ACEF7CBEABC /* AppCommands.swift in Sources */,
 				CAC6C3536F8369CBEB9C09B7 /* AppDelegate.swift in Sources */,
 				66AEBD29AC2766AC6CC7B8D0 /* AppLanguage.swift in Sources */,
@@ -305,8 +455,10 @@
 				4B1FE31615E506DB7D7C6D7A /* ClipboardHistoryViewModel.swift in Sources */,
 				44CDB3382B0FB64DA066FBAD /* ClipboardItem.swift in Sources */,
 				333DDC543FCB4B9644298BFD /* ClipboardManager.swift in Sources */,
+				9E471E44BFC4EA779F7D9837 /* ClipboardPayload.swift in Sources */,
 				439F75D97902482CC60A5C50 /* ClipboardSearchEngine.swift in Sources */,
 				DFA77BE409885C4BD79205A7 /* ClipboardTagCache.swift in Sources */,
+				2C412A5C6476F22E87F0B11F /* HistoryRepository.swift in Sources */,
 				A604FBEB3245B8F8966EAE1B /* HotkeyController.swift in Sources */,
 				BF7F559E4A124A3FB5FE6B3E /* KeyboardLayoutMapper.swift in Sources */,
 				18E8CF6BF2E4E9257993976A /* L10n.swift in Sources */,
@@ -316,6 +468,7 @@
 				CC4FC596BB9FDFCE7CB15B82 /* OverlayView.swift in Sources */,
 				02F46F9E08BD5EEC030CC60D /* OverlayWindowController.swift in Sources */,
 				B8655A379B2678997F1BDFDA /* PasteActionController.swift in Sources */,
+				CF577134B29BAFC5EB573BAF /* PasteboardItemWriter.swift in Sources */,
 				A4F8E73042D04B2FB06FE0E2 /* SettingsManager.swift in Sources */,
 				08F585662EA822F037F536F3 /* SettingsView.swift in Sources */,
 				A65CE55F6174A1E6792A79DB /* SettingsWindowController.swift in Sources */,
@@ -335,6 +488,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		187A1070A2427F929EE3C5E5 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 9DD44BFBAC324DB41BE2B4B8 /* tahoepaste-cli */;
+			targetProxy = 2D8D9E4C0324F289446775B4 /* PBXContainerItemProxy */;
+		};
 		5061558257BF952FFCCF01C2 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 3AFAA53154A51624BCB33650 /* TahoePaste */;
@@ -433,6 +591,24 @@
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mk.TahoePaste;
 				PRODUCT_NAME = TahoePaste;
+				SDKROOT = macosx;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+			};
+			name = Debug;
+		};
+		7DDEFD1BFD65D1C8F9783AFA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.mk.TahoePaste.cli;
+				PRODUCT_NAME = "tahoepaste-cli";
 				SDKROOT = macosx;
 				SWIFT_EMIT_LOC_STRINGS = NO;
 			};
@@ -561,6 +737,24 @@
 			};
 			name = Release;
 		};
+		E02D359DB7B9A11DA0E449BD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.mk.TahoePaste.cli;
+				PRODUCT_NAME = "tahoepaste-cli";
+				SDKROOT = macosx;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -578,6 +772,15 @@
 			buildConfigurations = (
 				2698A2E887F46E0A7C93CAD4 /* Debug */,
 				12EF6C5BEBF6FAE232018272 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		54805CAA6B7A10213B39E499 /* Build configuration list for PBXNativeTarget "tahoepaste-cli" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7DDEFD1BFD65D1C8F9783AFA /* Debug */,
+				E02D359DB7B9A11DA0E449BD /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;

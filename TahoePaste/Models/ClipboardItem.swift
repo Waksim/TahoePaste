@@ -367,6 +367,74 @@ struct ClipboardItem: Identifiable, Codable, Hashable {
     let imageFilename: String?
     let pixelSize: ClipboardPixelSize?
     let fileReferences: [ClipboardFileReference]?
+    /// Tags persisted at store time; `nil` on items written before tags were
+    /// stored. Treat as a cache of `ClipboardTagCache.resolveTags`, never as
+    /// a source of truth: `repairAndMigrate` recomputes stale values.
+    let storedTags: [ClipboardTag]?
+    /// Version of the tag resolver that produced `storedTags`.
+    let tagsVersion: Int?
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case kind
+        case createdAt
+        case text
+        case textPreview
+        case imageFilename
+        case pixelSize
+        case fileReferences
+        case storedTags = "tags"
+        case tagsVersion
+    }
+
+    // Explicit initializer: a `let` with a default value would vanish from
+    // the synthesized memberwise initializer, so `withComputedTags()` could
+    // never set the new fields while old call sites keep compiling.
+    init(
+        id: UUID,
+        kind: ClipboardKind,
+        createdAt: Date,
+        text: String?,
+        textPreview: String?,
+        imageFilename: String?,
+        pixelSize: ClipboardPixelSize?,
+        fileReferences: [ClipboardFileReference]?,
+        storedTags: [ClipboardTag]? = nil,
+        tagsVersion: Int? = nil
+    ) {
+        self.id = id
+        self.kind = kind
+        self.createdAt = createdAt
+        self.text = text
+        self.textPreview = textPreview
+        self.imageFilename = imageFilename
+        self.pixelSize = pixelSize
+        self.fileReferences = fileReferences
+        self.storedTags = storedTags
+        self.tagsVersion = tagsVersion
+    }
+
+    var needsTagRecompute: Bool {
+        storedTags == nil || tagsVersion != ClipboardTagCache.currentVersion
+    }
+
+    /// Copy with tags freshly computed by the resolver. Bypasses the computed
+    /// `tags` accessor on purpose: that one prefers `storedTags`, and stale
+    /// stored tags must not be re-persisted under the new version.
+    func withComputedTags() -> ClipboardItem {
+        ClipboardItem(
+            id: id,
+            kind: kind,
+            createdAt: createdAt,
+            text: text,
+            textPreview: textPreview,
+            imageFilename: imageFilename,
+            pixelSize: pixelSize,
+            fileReferences: fileReferences,
+            storedTags: ClipboardTagCache.resolveTags(for: self),
+            tagsVersion: ClipboardTagCache.currentVersion
+        )
+    }
 
     var isText: Bool {
         kind == .text
@@ -405,7 +473,7 @@ struct ClipboardItem: Identifiable, Codable, Hashable {
     }
 
     var tags: [ClipboardTag] {
-        ClipboardTagCache.tags(for: self)
+        storedTags ?? ClipboardTagCache.tags(for: self)
     }
 
     var displayTags: [ClipboardTag] {

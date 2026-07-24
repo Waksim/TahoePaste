@@ -2,6 +2,11 @@ import Foundation
 import os
 
 enum ClipboardTagCache {
+    /// Version of the whole tag resolver — primary kind tag, content
+    /// classifier, and file-category tags. Bump it whenever any of them
+    /// changes so `repairAndMigrate` recomputes persisted tags.
+    static let currentVersion = 1
+
     private static let storage = OSAllocatedUnfairLock(initialState: [UUID: [ClipboardTag]]())
 
     static func tags(for item: ClipboardItem) -> [ClipboardTag] {
@@ -29,7 +34,7 @@ enum ClipboardTagCache {
         storage.withLock { $0.removeAll() }
     }
 
-    private static func resolveTags(for item: ClipboardItem) -> [ClipboardTag] {
+    static func resolveTags(for item: ClipboardItem) -> [ClipboardTag] {
         var resolvedTags = [item.kind.primaryTag]
 
         if item.kind != .file, let text = item.text {

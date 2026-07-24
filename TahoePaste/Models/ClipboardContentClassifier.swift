@@ -18,6 +18,20 @@ enum ClipboardContentClassifier {
         return .text
     }
 
+    /// Uncapped password/token scan of the complete text. `detectedTags`
+    /// only analyses the first `maxAnalyzedCharacterCount` characters, so a
+    /// secret past that point never earns a persisted tag; agent-facing
+    /// single-item reads re-check the whole payload before revealing it.
+    static func containsSensitiveContent(inFullText text: String) -> Bool {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard trimmed.isEmpty == false else {
+            return false
+        }
+
+        let tokenDetected = containsToken(trimmed)
+        return tokenDetected || containsPassword(trimmed, tokenDetected: tokenDetected)
+    }
+
     static func detectedTags(for text: String) -> [ClipboardTag] {
         let analyzedText = analysisText(text)
         guard analyzedText.isEmpty == false else {

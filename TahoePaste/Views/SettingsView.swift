@@ -14,6 +14,7 @@ struct SettingsView: View {
                 clipboardSection
                 pasteSection
                 appearanceSection
+                agentAccessSection
                 storageAndPermissionsSection
 
                 if let statusMessage = historyViewModel.statusMessage {
@@ -299,6 +300,24 @@ struct SettingsView: View {
 
                 Slider(value: $settingsManager.cornerRadiusIntensity, in: 0...28, step: 1)
             }
+        }
+    }
+
+    private var agentAccessSection: some View {
+        settingsCard(L10n.tr("settings.section.agent"), systemImage: "sparkles") {
+            Toggle(L10n.tr("settings.agent_access"), isOn: $settingsManager.agentAccessEnabled)
+
+            Text(L10n.tr("settings.agent_access_caption"))
+                .font(.system(size: 11, weight: .medium, design: .rounded))
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+
+            Button {
+                historyViewModel.installAgentSkill()
+            } label: {
+                Label(L10n.tr("settings.install_skill"), systemImage: "square.and.arrow.down")
+            }
+            .disabled(settingsManager.agentAccessEnabled == false)
         }
     }
 

@@ -26,7 +26,11 @@ public sealed class StorageService
 
     public string RootDirectory => _paths.RootDirectory;
 
-    public IReadOnlyList<ClipboardItem> LoadHistory()
+    // Pure decode of the on-disk history: no repair, no cleanup, no writes.
+    // Reading concurrently with another process is safe because writers
+    // replace the file atomically. Use HistoryRepository for reads that must
+    // hide items with missing images and for every mutation.
+    public IReadOnlyList<ClipboardItem> DecodeHistory()
     {
         _paths.Ensure();
 
@@ -37,26 +41,16 @@ public sealed class StorageService
 
         var json = File.ReadAllText(_paths.HistoryPath);
         var decoded = JsonSerializer.Deserialize<List<ClipboardItem>>(json, _jsonOptions) ?? [];
-        var cleaned = decoded
-            .Where(item => item.IsImage == false || ImagePath(item) is { } path && File.Exists(path))
-            .OrderByDescending(item => item.CreatedAt)
-            .ToArray();
-
-        RemoveOrphanedImages(cleaned);
-
-        if (cleaned.Length != decoded.Count)
-        {
-            SaveHistory(cleaned);
-        }
-
-        return cleaned;
+        return decoded.OrderByDescending(item => item.CreatedAt).ToArray();
     }
 
     public void SaveHistory(IReadOnlyList<ClipboardItem> items)
     {
         _paths.Ensure();
 
-        var tempPath = _paths.HistoryPath + ".tmp";
+        // Unique temp name: a fixed one would collide when the GUI and the
+        // CLI save around the same moment.
+        var tempPath = $"{_paths.HistoryPath}.{Guid.NewGuid():N}.tmp";
         var json = JsonSerializer.Serialize(items, _jsonOptions);
         File.WriteAllText(tempPath, json);
         File.Move(tempPath, _paths.HistoryPath, overwrite: true);
@@ -140,7 +134,7 @@ public sealed class StorageService
             ClipboardItem.PreviewText(text),
             null,
             null,
-            null);
+            null).WithComputedTags();
     }
 
     private ClipboardItem StoreImage(BitmapSource image)
@@ -163,7 +157,7 @@ public sealed class StorageService
             null,
             filename,
             new ClipboardPixelSize(image.PixelWidth, image.PixelHeight),
-            null);
+            null).WithComputedTags();
     }
 
     private ClipboardItem StoreFiles(IReadOnlyList<string> paths)
@@ -180,9 +174,9 @@ public sealed class StorageService
             DateTimeOffset.Now,
             string.Join(Environment.NewLine, references.Select(reference => reference.Path)),
             null,
-            imagePreview?.Filename,
-            imagePreview?.PixelSize,
-            references);
+            null,
+            null,
+            references).WithComputedTags();
     }
 
     private const int PreviewMaxPixelDimension = 800;
@@ -251,7 +245,7 @@ public sealed class StorageService
             byteSize);
     }
 
-    private void RemoveOrphanedImages(IReadOnlyList<ClipboardItem> items)
+    public void RemoveOrphanedImages(IReadOnlyList<ClipboardItem> items)
     {
         _paths.Ensure();
 

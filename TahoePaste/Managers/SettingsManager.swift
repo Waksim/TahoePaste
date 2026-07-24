@@ -320,6 +320,10 @@ final class SettingsManager: ObservableObject {
         didSet { persist(isMonitoringPaused, forKey: Keys.isMonitoringPaused) }
     }
 
+    @Published var agentAccessEnabled: Bool {
+        didSet { persist(agentAccessEnabled, forKey: Keys.agentAccessEnabled) }
+    }
+
     @Published var maximumHistoryItems: Int {
         didSet {
             let normalizedValue = Self.normalizedMaximumHistoryItems(maximumHistoryItems)
@@ -638,6 +642,7 @@ final class SettingsManager: ObservableObject {
         self.captureText = defaults.object(forKey: Keys.captureText) as? Bool ?? true
         self.captureImages = defaults.object(forKey: Keys.captureImages) as? Bool ?? true
         self.isMonitoringPaused = defaults.object(forKey: Keys.isMonitoringPaused) as? Bool ?? false
+        self.agentAccessEnabled = defaults.object(forKey: Keys.agentAccessEnabled) as? Bool ?? true
         self.lastFiniteHistoryItems = Self.normalizedFiniteHistoryItems(
             defaults.object(forKey: Keys.lastFiniteHistoryItems) as? Int ?? 200
         )
@@ -1082,6 +1087,7 @@ private enum Keys {
     static let captureText = "TahoePasteCaptureText"
     static let captureImages = "TahoePasteCaptureImages"
     static let isMonitoringPaused = "TahoePasteMonitoringPaused"
+    static let agentAccessEnabled = "TahoePasteAgentAccessEnabled"
     static let maximumHistoryItems = "TahoePasteMaximumHistoryItems"
     static let lastFiniteHistoryItems = "TahoePasteLastFiniteHistoryItems"
     static let autoPasteAfterSelection = "TahoePasteAutoPasteAfterSelection"

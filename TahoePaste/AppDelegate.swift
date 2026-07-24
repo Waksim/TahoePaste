@@ -4,6 +4,7 @@ import Combine
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     let storageManager: StorageManager
+    let historyRepository: HistoryRepository
     let settingsManager: SettingsManager
     let accessibilityPermissionManager: AccessibilityPermissionManager
     let clipboardManager: ClipboardManager
@@ -34,6 +35,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     override init() {
         let storageManager = StorageManager()
         self.storageManager = storageManager
+        self.historyRepository = HistoryRepository(storageManager: storageManager)
         self.settingsManager = SettingsManager.shared
         self.accessibilityPermissionManager = AccessibilityPermissionManager()
         self.clipboardManager = ClipboardManager()
@@ -67,6 +69,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         applyHistoryLimitIfNeeded()
 
         clipboardManager.startListening()
+
+        writeAgentManifest(enabled: settingsManager.agentAccessEnabled)
+        configureExternalHistoryChangeObservation()
+
+        if let captureMode = ProcessInfo.processInfo.environment["TAHOEPASTE_README_CAPTURE"] {
+            DispatchQueue.main.async { [weak self] in
+                guard let self else {
+                    return
+                }
+
+                if captureMode == "settings" {
+                    self.openSettingsWindow()
+                } else if captureMode == "overlay" {
+                    self.showOverlay()
+                }
+            }
+        }
     }
 
     func applicationDidBecomeActive(_ notification: Notification) {
@@ -130,6 +149,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         historyViewModel.onRevealStorageInFinder = { [weak self] in
             self?.storageManager.revealInFinder()
         }
+        historyViewModel.onInstallAgentSkill = { [weak self] in
+            self?.installAgentSkill()
+        }
         historyViewModel.onQuit = {
             NSApplication.shared.terminate(nil)
         }
@@ -162,7 +184,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func restorePersistedHistory() {
         do {
-            let items = try storageManager.loadHistory()
+            let items = try historyRepository.repairAndMigrate()
             historyViewModel.replaceHistory(with: items)
         } catch {
             historyViewModel.setStatusMessage(L10n.tr("status.load_history_failed"))
@@ -209,6 +231,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             .dropFirst()
             .sink { [weak self] _ in
                 self?.applyHistoryLimitIfNeeded()
+            }
+            .store(in: &cancellables)
+
+        // @Published emits on willSet, so use the sink argument — reading
+        // settingsManager.agentAccessEnabled here would give the old value.
+        settingsManager.$agentAccessEnabled
+            .dropFirst()
+            .sink { [weak self] enabled in
+                self?.writeAgentManifest(enabled: enabled)
             }
             .store(in: &cancellables)
 
@@ -263,12 +294,58 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         historyViewModel.setAccessibilityTrusted(trusted)
     }
 
+    private func writeAgentManifest(enabled: Bool) {
+        try? AgentManifest.current(enabled: enabled).write(to: storageManager.rootDirectoryURL)
+    }
+
+    private func configureExternalHistoryChangeObservation() {
+        DistributedNotificationCenter.default().addObserver(
+            forName: Notification.Name(AgentManifest.historyDidChangeNotificationName),
+            object: nil,
+            queue: .main
+        ) { _ in
+            Task { @MainActor in
+                guard let appDelegate = NSApp.delegate as? AppDelegate else {
+                    return
+                }
+
+                appDelegate.reloadHistoryFromDisk()
+            }
+        }
+    }
+
+    /// Refresh from disk after an external mutation (CLI add/delete). Plain
+    /// snapshot read — repair and migration already ran at launch.
+    private func reloadHistoryFromDisk() {
+        do {
+            let items = try historyRepository.readSnapshot()
+            historyViewModel.replaceHistory(with: items)
+        } catch {
+            historyViewModel.setStatusMessage(L10n.tr("status.load_history_failed"))
+        }
+    }
+
+    private func installAgentSkill() {
+        do {
+            try AgentSkillInstaller.install()
+            historyViewModel.setStatusMessage(L10n.tr("status.skill_installed"))
+        } catch {
+            historyViewModel.setStatusMessage(L10n.tr("status.skill_install_failed"))
+        }
+    }
+
     private func handleClipboardPayload(_ payload: ClipboardPayload) {
         do {
-            let item = try storageManager.store(payload: payload)
-            let updatedHistory = trimmedHistory(withNewestItem: item)
-            historyViewModel.replaceHistory(with: updatedHistory)
-            try storageManager.saveHistory(updatedHistory)
+            let outcome = try historyRepository.append(
+                payload: payload,
+                historyLimit: settingsManager.historyLimit
+            )
+
+            guard outcome.wasDeduplicated == false else {
+                return
+            }
+
+            historyViewModel.replaceHistory(with: outcome.history)
         } catch {
             historyViewModel.setStatusMessage(L10n.tr("status.save_latest_failed"))
         }
@@ -308,8 +385,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func clearHistory() {
         do {
-            try storageManager.clearHistory()
-            historyViewModel.replaceHistory(with: [])
+            let items = try historyRepository.clear()
+            historyViewModel.replaceHistory(with: items)
             historyViewModel.setStatusMessage(L10n.tr("status.history_cleared"))
         } catch {
             historyViewModel.setStatusMessage(L10n.tr("status.clear_history_failed"))
@@ -317,14 +394,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func deleteItem(_ item: ClipboardItem) {
-        let updatedHistory = historyViewModel.currentHistory.filter { $0.id != item.id }
-        guard updatedHistory.count != historyViewModel.currentHistory.count else {
-            return
-        }
-
         do {
-            historyViewModel.replaceHistory(with: updatedHistory)
-            try storageManager.saveHistory(updatedHistory)
+            let outcome = try historyRepository.delete(id: item.id)
+            historyViewModel.replaceHistory(with: outcome.history)
         } catch {
             historyViewModel.setStatusMessage(L10n.tr("status.delete_item_failed"))
         }
@@ -341,14 +413,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             return
         }
 
-        let trimmedHistory = Array(historyViewModel.currentHistory.prefix(historyLimit))
-        guard trimmedHistory.count != historyViewModel.currentHistory.count else {
+        guard historyViewModel.currentHistory.count > historyLimit else {
             return
         }
 
         do {
-            historyViewModel.replaceHistory(with: trimmedHistory)
-            try storageManager.saveHistory(trimmedHistory)
+            let items = try historyRepository.trim(to: historyLimit)
+            historyViewModel.replaceHistory(with: items)
         } catch {
             historyViewModel.setStatusMessage(L10n.tr("status.trim_history_failed"))
         }
@@ -379,12 +450,4 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    private func trimmedHistory(withNewestItem item: ClipboardItem) -> [ClipboardItem] {
-        let updatedHistory = [item] + historyViewModel.currentHistory
-        guard let historyLimit = settingsManager.historyLimit else {
-            return updatedHistory
-        }
-
-        return Array(updatedHistory.prefix(historyLimit))
-    }
 }

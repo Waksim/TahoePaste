@@ -29,6 +29,7 @@ final class ClipboardHistoryViewModel: ObservableObject {
     var onRequestAccessibilityPermission: (() -> Void)?
     var onClearHistory: (() -> Void)?
     var onRevealStorageInFinder: (() -> Void)?
+    var onInstallAgentSkill: (() -> Void)?
     var onQuit: (() -> Void)?
 
     private let storageManager: StorageManager
@@ -263,6 +264,10 @@ final class ClipboardHistoryViewModel: ObservableObject {
 
     func revealStorageInFinder() {
         onRevealStorageInFinder?()
+    }
+
+    func installAgentSkill() {
+        onInstallAgentSkill?()
     }
 
     func quit() {

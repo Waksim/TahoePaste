@@ -17,13 +17,23 @@ targets:
     sources:
       - path: TahoePaste
       - path: TahoePaste/Search
-    info:
-      path: TahoePaste/Info.plist
+      - path: docs/agent/SKILL.md
+        buildPhase: resources
+    dependencies:
+      - target: tahoepaste-cli
+        embed: true
+        codeSign: true
+        copy:
+          destination: executables
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.mk.TahoePaste
         PRODUCT_NAME: TahoePaste
         GENERATE_INFOPLIST_FILE: NO
+        # INFOPLIST_FILE instead of xcodegen's `info.path`: the latter makes
+        # xcodegen REWRITE the plist on every generate, clobbering the
+        # $(MARKETING_VERSION)/$(CURRENT_PROJECT_VERSION) placeholders.
+        INFOPLIST_FILE: TahoePaste/Info.plist
         CODE_SIGN_STYLE: Automatic
         ENABLE_HARDENED_RUNTIME: NO
         ENABLE_APP_SANDBOX: NO
@@ -31,6 +41,25 @@ targets:
     scheme:
       testTargets:
         - TahoePasteTests
+  tahoepaste-cli:
+    type: tool
+    platform: macOS
+    deploymentTarget: "26.0"
+    sources:
+      - path: TahoePasteCLI
+      - path: TahoePaste/Models
+      - path: TahoePaste/Search
+      - path: TahoePaste/Localization
+      - path: TahoePaste/Agent
+      - path: TahoePaste/Storage
+      - path: TahoePaste/Managers/StorageManager.swift
+    settings:
+      base:
+        PRODUCT_NAME: tahoepaste-cli
+        PRODUCT_BUNDLE_IDENTIFIER: com.mk.TahoePaste.cli
+        GENERATE_INFOPLIST_FILE: YES
+        CODE_SIGN_STYLE: Automatic
+        SWIFT_EMIT_LOC_STRINGS: NO
   TahoePasteTests:
     type: bundle.unit-test
     platform: macOS

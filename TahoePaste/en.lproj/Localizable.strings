@@ -41,6 +41,8 @@
 "overlay.return_to_previous_position" = "Return to where you left off";
 "overlay.search_placeholder" = "Search clipboard history";
 "settings.accessibility" = "Accessibility";
+"settings.agent_access" = "Allow AI agent access";
+"settings.agent_access_caption" = "Lets local AI agents (e.g. Claude Code) search and manage your clipboard history through the bundled command-line tool. Items recognized as passwords or tokens stay hidden by default.";
 "settings.auto_layout" = "Automatic spacing";
 "settings.auto_layout_help" = "Sizes and paddings follow the card size preset. Turn off to fine-tune every value manually.";
 "settings.auto_paste" = "Auto-paste after selection";
@@ -53,6 +55,7 @@
 "settings.delete_all_saved_data" = "Delete all saved data";
 "settings.enabled" = "Enabled";
 "settings.hotkey_status" = "Hotkey status";
+"settings.install_skill" = "Install skill for Claude Code";
 "settings.language" = "Language";
 "settings.launch_at_login" = "Launch at login";
 "settings.launch_at_login_help" = "Start TahoePaste automatically when you sign in to this Mac.";
@@ -88,6 +91,7 @@
 "settings.request_accessibility" = "Request Accessibility";
 "settings.reveal_application_support" = "Reveal Application Support";
 "settings.saved_items" = "Saved items";
+"settings.section.agent" = "AI Agents";
 "settings.section.appearance" = "Appearance";
 "settings.section.clipboard" = "Clipboard";
 "settings.section.general" = "General";
@@ -132,6 +136,8 @@
 "status.monitoring_paused" = "Monitoring paused";
 "status.restore_item_failed" = "Couldn't restore the selected clipboard item.";
 "status.save_latest_failed" = "Couldn't save the latest clipboard item.";
+"status.skill_install_failed" = "Couldn't install the agent skill.";
+"status.skill_installed" = "Agent skill installed to ~/.claude/skills/tahoepaste.";
 "status.trim_history_failed" = "Couldn't trim clipboard history.";
 "unit.characters" = "%d chars";
 "unit.files" = "%d files";

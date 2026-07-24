@@ -167,6 +167,10 @@ public partial class SettingsWindow : Window
         ClipboardGroup.Header = L10n.Tr("settings.section.clipboard");
         PasteGroup.Header = L10n.Tr("settings.section.paste");
         AppearanceGroup.Header = L10n.Tr("settings.section.appearance");
+        AgentGroup.Header = L10n.Tr("settings.section.agent");
+        AgentAccessCheck.Content = L10n.Tr("settings.agent_access");
+        AgentAccessCaption.Text = L10n.Tr("settings.agent_access_caption");
+        InstallSkillButton.Content = L10n.Tr("settings.install_skill");
         StorageGroup.Header = L10n.Tr("settings.section.storage_permissions");
         LanguageLabel.Text = L10n.Tr("settings.language");
         LaunchAtLoginCheck.Content = L10n.Tr("settings.launch_at_login");
@@ -239,6 +243,8 @@ public partial class SettingsWindow : Window
         CaptureTextCheck.IsChecked = _settings.CaptureText;
         CaptureImagesCheck.IsChecked = _settings.CaptureImages;
         PauseMonitoringCheck.IsChecked = _settings.IsMonitoringPaused;
+        AgentAccessCheck.IsChecked = _settings.AgentAccessEnabled;
+        InstallSkillButton.IsEnabled = _settings.AgentAccessEnabled;
         UnlimitedHistoryCheck.IsChecked = _settings.HasUnlimitedHistory;
         MaximumHistoryItemsSlider.Value = _settings.FiniteHistoryItems;
         MaximumHistoryItemsSlider.IsEnabled = _settings.HasUnlimitedHistory == false;
@@ -398,6 +404,36 @@ public partial class SettingsWindow : Window
         if (_isRefreshing == false)
         {
             _settings.IsMonitoringPaused = PauseMonitoringCheck.IsChecked == true;
+        }
+    }
+
+    private void OnAgentAccessChanged(object sender, RoutedEventArgs e)
+    {
+        if (_isRefreshing == false)
+        {
+            _settings.AgentAccessEnabled = AgentAccessCheck.IsChecked == true;
+            InstallSkillButton.IsEnabled = _settings.AgentAccessEnabled;
+        }
+    }
+
+    private void OnInstallSkillClick(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var sourcePath = Path.Combine(AppContext.BaseDirectory, "skill", "tahoepaste", "SKILL.md");
+            var destinationDirectory = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+                ".claude",
+                "skills",
+                "tahoepaste");
+
+            Directory.CreateDirectory(destinationDirectory);
+            File.Copy(sourcePath, Path.Combine(destinationDirectory, "SKILL.md"), overwrite: true);
+            _viewModel.SetStatusMessage(L10n.Tr("status.skill_installed"));
+        }
+        catch
+        {
+            _viewModel.SetStatusMessage(L10n.Tr("status.skill_install_failed"));
         }
     }
 

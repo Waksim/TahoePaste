@@ -3,13 +3,6 @@ import Carbon
 
 @MainActor
 final class PasteActionController {
-    enum PasteError: Error {
-        case missingTextPayload
-        case missingImagePayload
-        case missingFilePayload
-        case failedToWritePasteboard
-    }
-
     private let storageManager: StorageManager
     private let clipboardManager: ClipboardManager
     private let accessibilityPermissionManager: AccessibilityPermissionManager
@@ -54,6 +47,12 @@ final class PasteActionController {
             return
         }
 
+        guard accessibilityPermissionManager.refreshTrustStatus() else {
+            onPermissionFallback(L10n.tr("status.accessibility_manual_paste"))
+            accessibilityPermissionManager.requestAccessibilityAccess()
+            return
+        }
+
         DispatchQueue.main.asyncAfter(deadline: .now() + settingsManager.pasteDelay) {
             self.postCommandV()
 
@@ -66,45 +65,8 @@ final class PasteActionController {
     }
 
     private func writeItemToPasteboard(_ item: ClipboardItem) throws {
-        let pasteboard = NSPasteboard.general
-        pasteboard.clearContents()
-
-        let writeSucceeded: Bool
-
-        switch item.kind {
-        case .text, .link, .code:
-            guard let text = item.text else {
-                throw PasteError.missingTextPayload
-            }
-
-            writeSucceeded = pasteboard.setString(text, forType: .string)
-        case .image:
-            guard let image = storageManager.loadImage(for: item) else {
-                throw PasteError.missingImagePayload
-            }
-
-            writeSucceeded = pasteboard.writeObjects([image])
-        case .file:
-            guard let fileReferences = item.fileReferences, fileReferences.isEmpty == false else {
-                throw PasteError.missingFilePayload
-            }
-
-            let existingURLs = fileReferences
-                .map(\.url)
-                .filter { FileManager.default.fileExists(atPath: $0.path) }
-
-            guard existingURLs.isEmpty == false else {
-                throw PasteError.missingFilePayload
-            }
-
-            writeSucceeded = pasteboard.writeObjects(existingURLs as [NSURL])
-        }
-
-        guard writeSucceeded else {
-            throw PasteError.failedToWritePasteboard
-        }
-
-        clipboardManager.suppressNextObservedChangeCount(pasteboard.changeCount)
+        let result = try PasteboardItemWriter.write(item, storageManager: storageManager)
+        clipboardManager.suppressNextObservedChangeCount(result.changeCount)
     }
 
     private func postCommandV() {

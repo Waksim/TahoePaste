@@ -14,8 +14,27 @@ public sealed record ClipboardItem(
     string? TextPreview,
     string? ImageFilename,
     ClipboardPixelSize? PixelSize,
-    IReadOnlyList<ClipboardFileReference>? FileReferences)
+    IReadOnlyList<ClipboardFileReference>? FileReferences,
+    [property: JsonPropertyName("tags")] IReadOnlyList<ClipboardTag>? StoredTags = null,
+    int? TagsVersion = null)
 {
+    /// Version of the whole tag resolver — primary kind tag, content
+    /// classifier, and file-category tags. Bump it whenever any of them
+    /// changes so RepairAndMigrate recomputes persisted tags.
+    public const int CurrentTagsVersion = 1;
+
+    [JsonIgnore]
+    public bool NeedsTagRecompute => StoredTags is null || TagsVersion != CurrentTagsVersion;
+
+    /// Copy with tags freshly computed by the resolver. Bypasses `Tags` on
+    /// purpose: that one prefers StoredTags, and stale stored tags must not
+    /// be re-persisted under the new version.
+    public ClipboardItem WithComputedTags() => this with
+    {
+        StoredTags = ResolveTags(),
+        TagsVersion = CurrentTagsVersion
+    };
+
     [JsonIgnore]
     public bool IsText => Kind == ClipboardKind.Text;
 
@@ -49,7 +68,7 @@ public sealed record ClipboardItem(
     private static readonly ConditionalWeakTable<ClipboardItem, IReadOnlyList<ClipboardTag>> TagCache = new();
 
     [JsonIgnore]
-    public IReadOnlyList<ClipboardTag> Tags => TagCache.GetValue(this, static item => item.ResolveTags());
+    public IReadOnlyList<ClipboardTag> Tags => StoredTags ?? TagCache.GetValue(this, static item => item.ResolveTags());
 
     private IReadOnlyList<ClipboardTag> ResolveTags()
     {

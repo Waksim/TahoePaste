@@ -4,6 +4,10 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TahoePaste.Windows", "src\TahoePaste.Windows\TahoePaste.Windows.csproj", "{C18C2777-B96F-43E7-874D-C58B25B8B674}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TahoePaste.Cli", "src\TahoePaste.Cli\TahoePaste.Cli.csproj", "{7D4C9A2E-3F61-4B8A-9C05-2E8B1D6F4A17}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TahoePaste.Windows.Tests", "src\TahoePaste.Windows.Tests\TahoePaste.Windows.Tests.csproj", "{5E8F1B3C-9A72-4D06-8B14-6C3D2A9E7F58}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -14,6 +18,14 @@ Global
 		{C18C2777-B96F-43E7-874D-C58B25B8B674}.Debug|x64.Build.0 = Debug|x64
 		{C18C2777-B96F-43E7-874D-C58B25B8B674}.Release|x64.ActiveCfg = Release|x64
 		{C18C2777-B96F-43E7-874D-C58B25B8B674}.Release|x64.Build.0 = Release|x64
+		{7D4C9A2E-3F61-4B8A-9C05-2E8B1D6F4A17}.Debug|x64.ActiveCfg = Debug|x64
+		{7D4C9A2E-3F61-4B8A-9C05-2E8B1D6F4A17}.Debug|x64.Build.0 = Debug|x64
+		{7D4C9A2E-3F61-4B8A-9C05-2E8B1D6F4A17}.Release|x64.ActiveCfg = Release|x64
+		{7D4C9A2E-3F61-4B8A-9C05-2E8B1D6F4A17}.Release|x64.Build.0 = Release|x64
+		{5E8F1B3C-9A72-4D06-8B14-6C3D2A9E7F58}.Debug|x64.ActiveCfg = Debug|x64
+		{5E8F1B3C-9A72-4D06-8B14-6C3D2A9E7F58}.Debug|x64.Build.0 = Debug|x64
+		{5E8F1B3C-9A72-4D06-8B14-6C3D2A9E7F58}.Release|x64.ActiveCfg = Release|x64
+		{5E8F1B3C-9A72-4D06-8B14-6C3D2A9E7F58}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -49,7 +49,11 @@ final class StorageManager {
         self.decoder = decoder
     }
 
-    func loadHistory() throws -> [ClipboardItem] {
+    /// Pure decode of the on-disk history: no repair, no cleanup, no writes.
+    /// Reading concurrently with another process is safe because writers
+    /// replace the file atomically. Use `HistoryRepository` for reads that
+    /// must hide items with missing images and for every mutation.
+    func decodeHistory() throws -> [ClipboardItem] {
         try ensureDirectoriesExist()
 
         guard fileManager.fileExists(atPath: historyFileURL.path) else {
@@ -57,29 +61,8 @@ final class StorageManager {
         }
 
         let data = try Data(contentsOf: historyFileURL)
-        let decodedItems = try decoder.decode([ClipboardItem].self, from: data)
-
-        let cleanedItems = decodedItems
-            .filter { item in
-                if item.isImage == false {
-                    return true
-                }
-
-                guard let imageURL = imageURL(for: item) else {
-                    return false
-                }
-
-                return fileManager.fileExists(atPath: imageURL.path)
-            }
+        return try decoder.decode([ClipboardItem].self, from: data)
             .sorted(by: { $0.createdAt > $1.createdAt })
-
-        try removeOrphanedImages(referencedBy: cleanedItems)
-
-        if cleanedItems != decodedItems {
-            try saveHistory(cleanedItems)
-        }
-
-        return cleanedItems
     }
 
     func saveHistory(_ items: [ClipboardItem]) throws {
@@ -105,7 +88,7 @@ final class StorageManager {
                 imageFilename: nil,
                 pixelSize: nil,
                 fileReferences: nil
-            )
+            ).withComputedTags()
         case .image(let image):
             let filename = "\(UUID().uuidString).png"
             let fileURL = imagesDirectoryURL.appendingPathComponent(filename)
@@ -122,7 +105,7 @@ final class StorageManager {
                 imageFilename: filename,
                 pixelSize: Self.pixelSize(from: image),
                 fileReferences: nil
-            )
+            ).withComputedTags()
         case .fileURLs(let fileURLs):
             let fileReferences = fileURLs.map(fileReference(for:))
             let imagePreview = imageFilePreview(for: fileReferences)
@@ -136,7 +119,7 @@ final class StorageManager {
                 imageFilename: imagePreview?.filename,
                 pixelSize: imagePreview?.pixelSize,
                 fileReferences: fileReferences
-            )
+            ).withComputedTags()
         }
     }
 
@@ -271,12 +254,12 @@ final class StorageManager {
         NSWorkspace.shared.activateFileViewerSelecting([rootDirectoryURL])
     }
 
-    private func ensureDirectoriesExist() throws {
+    func ensureDirectoriesExist() throws {
         try fileManager.createDirectory(at: rootDirectoryURL, withIntermediateDirectories: true)
         try fileManager.createDirectory(at: imagesDirectoryURL, withIntermediateDirectories: true)
     }
 
-    private func removeOrphanedImages(referencedBy items: [ClipboardItem]) throws {
+    func removeOrphanedImages(referencedBy items: [ClipboardItem]) throws {
         let referencedFilenames = Set(items.compactMap(\.imageFilename))
         let storedFiles = try fileManager.contentsOfDirectory(at: imagesDirectoryURL, includingPropertiesForKeys: nil)
 

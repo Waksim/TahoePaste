@@ -58,7 +58,7 @@ final class TahoePasteTests: XCTestCase {
         let item = try storageManager.store(payload: .image(image))
         try storageManager.saveHistory([item])
 
-        let restoredHistory = try storageManager.loadHistory()
+        let restoredHistory = try HistoryRepository(storageManager: storageManager).readSnapshot()
         let restoredImage = storageManager.loadImage(for: restoredHistory[0])
 
         XCTAssertEqual(restoredHistory.count, 1)
@@ -75,7 +75,7 @@ final class TahoePasteTests: XCTestCase {
         try firstManager.saveHistory([textItem, imageItem])
 
         let secondManager = StorageManager(rootDirectoryURL: rootDirectory)
-        let restored = try secondManager.loadHistory()
+        let restored = try HistoryRepository(storageManager: secondManager).readSnapshot()
 
         XCTAssertEqual(restored.count, 2)
         XCTAssertTrue(restored.contains(where: { $0.kind == .text && $0.text == "A persisted clipboard note" }))
@@ -623,6 +623,412 @@ final class TahoePasteTests: XCTestCase {
             pixelSize: nil,
             fileReferences: nil
         )
+    }
+
+    // MARK: - HistoryRepository
+
+    func testReadSnapshotDoesNotDeleteUnreferencedImagesOrRewriteHistory() throws {
+        let rootDirectory = makeTemporaryDirectory()
+        let storageManager = StorageManager(rootDirectoryURL: rootDirectory)
+        let repository = HistoryRepository(storageManager: storageManager)
+
+        let textItem = try storageManager.store(payload: .text("existing note"))
+        try storageManager.saveHistory([textItem])
+
+        // Simulates the capture window: the app already wrote the PNG but has
+        // not referenced it from history.json yet.
+        let freshImageItem = try storageManager.store(payload: .image(makeImage(size: NSSize(width: 32, height: 32), color: .systemRed)))
+        let freshImageURL = try XCTUnwrap(storageManager.imageURL(for: freshImageItem))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: freshImageURL.path))
+
+        let historyFileURL = rootDirectory.appendingPathComponent("history.json")
+        let historyBeforeRead = try Data(contentsOf: historyFileURL)
+
+        let snapshot = try repository.readSnapshot()
+
+        XCTAssertEqual(snapshot.map(\.id), [textItem.id])
+        XCTAssertTrue(FileManager.default.fileExists(atPath: freshImageURL.path))
+        XCTAssertEqual(try Data(contentsOf: historyFileURL), historyBeforeRead)
+    }
+
+    func testRepositoryInterleavedMutationsDoNotLoseItems() throws {
+        let rootDirectory = makeTemporaryDirectory()
+        let firstRepository = HistoryRepository(storageManager: StorageManager(rootDirectoryURL: rootDirectory))
+        let secondRepository = HistoryRepository(storageManager: StorageManager(rootDirectoryURL: rootDirectory))
+
+        let first = try firstRepository.append(payload: .text("item A"), historyLimit: nil)
+        _ = try secondRepository.append(payload: .text("item B"), historyLimit: nil)
+
+        let outcome = try firstRepository.delete(id: first.item.id)
+
+        XCTAssertTrue(outcome.removedItem)
+        XCTAssertEqual(outcome.history.compactMap(\.text), ["item B"])
+        XCTAssertEqual(try secondRepository.readSnapshot().compactMap(\.text), ["item B"])
+    }
+
+    func testAppendDeduplicatesIdenticalNewestText() throws {
+        let repository = HistoryRepository(storageManager: StorageManager(rootDirectoryURL: makeTemporaryDirectory()))
+
+        let first = try repository.append(payload: .text("same text"), historyLimit: nil)
+        let second = try repository.append(payload: .text("same text"), historyLimit: nil)
+
+        XCTAssertFalse(first.wasDeduplicated)
+        XCTAssertTrue(second.wasDeduplicated)
+        XCTAssertEqual(second.item.id, first.item.id)
+        XCTAssertEqual(try repository.readSnapshot().count, 1)
+    }
+
+    func testAppendAppliesHistoryLimit() throws {
+        let repository = HistoryRepository(storageManager: StorageManager(rootDirectoryURL: makeTemporaryDirectory()))
+
+        for index in 0..<5 {
+            _ = try repository.append(payload: .text("note \(index)"), historyLimit: 3)
+        }
+
+        let snapshot = try repository.readSnapshot()
+        XCTAssertEqual(snapshot.count, 3)
+        XCTAssertEqual(snapshot.first?.text, "note 4")
+    }
+
+    func testRepositoryDeleteRemovesOrphanedImage() throws {
+        let rootDirectory = makeTemporaryDirectory()
+        let storageManager = StorageManager(rootDirectoryURL: rootDirectory)
+        let repository = HistoryRepository(storageManager: storageManager)
+
+        let outcome = try repository.append(
+            payload: .image(makeImage(size: NSSize(width: 24, height: 24), color: .systemTeal)),
+            historyLimit: nil
+        )
+        let imageURL = try XCTUnwrap(storageManager.imageURL(for: outcome.item))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: imageURL.path))
+
+        _ = try repository.delete(id: outcome.item.id)
+
+        XCTAssertFalse(FileManager.default.fileExists(atPath: imageURL.path))
+        XCTAssertTrue(try repository.readSnapshot().isEmpty)
+    }
+
+    // MARK: - Persisted tags
+
+    func testStoreComputesAndPersistsTags() throws {
+        let rootDirectory = makeTemporaryDirectory()
+        let storageManager = StorageManager(rootDirectoryURL: rootDirectory)
+
+        let item = try storageManager.store(payload: .text("password: hunter2!Aa"))
+        try storageManager.saveHistory([item])
+
+        XCTAssertEqual(item.tagsVersion, ClipboardTagCache.currentVersion)
+        XCTAssertEqual(item.storedTags?.contains(.password), true)
+
+        let rawHistory = try String(contentsOf: rootDirectory.appendingPathComponent("history.json"), encoding: .utf8)
+        XCTAssertTrue(rawHistory.contains("\"tags\""))
+        XCTAssertTrue(rawHistory.contains("\"tagsVersion\""))
+    }
+
+    func testRepairAndMigrateAddsTagsToLegacyItems() throws {
+        let rootDirectory = makeTemporaryDirectory()
+        let storageManager = StorageManager(rootDirectoryURL: rootDirectory)
+        let repository = HistoryRepository(storageManager: storageManager)
+
+        let legacyItem = ClipboardItem(
+            id: UUID(),
+            kind: .link,
+            createdAt: .now,
+            text: "https://example.com",
+            textPreview: "https://example.com",
+            imageFilename: nil,
+            pixelSize: nil,
+            fileReferences: nil
+        )
+        try storageManager.saveHistory([legacyItem])
+
+        let migrated = try repository.repairAndMigrate()
+
+        XCTAssertEqual(migrated.first?.storedTags?.first, .link)
+        XCTAssertEqual(migrated.first?.tagsVersion, ClipboardTagCache.currentVersion)
+
+        let reloaded = try storageManager.decodeHistory()
+        XCTAssertEqual(reloaded.first?.storedTags?.first, .link)
+    }
+
+    func testRepairAndMigrateRecomputesOutdatedTagsVersion() throws {
+        let rootDirectory = makeTemporaryDirectory()
+        let storageManager = StorageManager(rootDirectoryURL: rootDirectory)
+        let repository = HistoryRepository(storageManager: storageManager)
+
+        let outdatedItem = ClipboardItem(
+            id: UUID(),
+            kind: .link,
+            createdAt: .now,
+            text: "https://example.com",
+            textPreview: "https://example.com",
+            imageFilename: nil,
+            pixelSize: nil,
+            fileReferences: nil,
+            storedTags: [.text],
+            tagsVersion: 0
+        )
+        try storageManager.saveHistory([outdatedItem])
+
+        let migrated = try repository.repairAndMigrate()
+
+        XCTAssertEqual(migrated.first?.storedTags?.first, .link)
+        XCTAssertEqual(migrated.first?.tagsVersion, ClipboardTagCache.currentVersion)
+    }
+
+    func testClipboardItemTagsFallBackToResolverWhenStoredTagsAreNil() {
+        let item = ClipboardItem(
+            id: UUID(),
+            kind: .text,
+            createdAt: .now,
+            text: "mail me at someone@example.com",
+            textPreview: nil,
+            imageFilename: nil,
+            pixelSize: nil,
+            fileReferences: nil
+        )
+
+        XCTAssertNil(item.storedTags)
+        XCTAssertTrue(item.tags.contains(.email))
+    }
+
+    // MARK: - AgentQueryService
+
+    private func makeAgentService() throws -> (AgentQueryService, HistoryRepository) {
+        let storageManager = StorageManager(rootDirectoryURL: makeTemporaryDirectory())
+        let repository = HistoryRepository(storageManager: storageManager)
+        return (AgentQueryService(repository: repository, storageManager: storageManager), repository)
+    }
+
+    func testAgentQueryServiceExcludesSensitiveItemsByDefault() throws {
+        let (service, repository) = try makeAgentService()
+        _ = try repository.append(payload: .text("plain note"), historyLimit: nil)
+        _ = try repository.append(payload: .text("Password: Str0ng!Pass2026"), historyLimit: nil)
+
+        let hidden = try service.recent(limit: 10, includeSensitive: false)
+        XCTAssertEqual(hidden.items.count, 1)
+        XCTAssertEqual(hidden.totalItems, 1)
+        XCTAssertEqual(hidden.sensitiveExcluded, 1)
+        XCTAssertEqual(hidden.items.first?.preview, "plain note")
+
+        let revealed = try service.recent(limit: 10, includeSensitive: true)
+        XCTAssertEqual(revealed.items.count, 2)
+        XCTAssertEqual(revealed.sensitiveExcluded, 0)
+        XCTAssertTrue(revealed.items.contains(where: { $0.isSensitive }))
+    }
+
+    func testAgentDetailBlocksSecretBeyondClassifierAnalysisCap() throws {
+        let (service, repository) = try makeAgentService()
+        let padding = String(repeating: "lorem ipsum dolor sit amet ", count: 200)
+        let outcome = try repository.append(
+            payload: .text(padding + "\nAuthorization: Bearer sk_live_1234567890ABCDEF"),
+            historyLimit: nil
+        )
+
+        // The persisted tags miss the secret (it sits past the 4000-char cap),
+        // so the item is visible in listings...
+        XCTAssertFalse(AgentQueryService.isSensitive(outcome.item))
+
+        // ...but the single-item full-text re-check refuses to hand it out.
+        XCTAssertThrowsError(try service.detail(id: outcome.item.id, full: true, includeSensitive: false)) { error in
+            guard case AgentQueryService.QueryError.sensitiveItem = error else {
+                return XCTFail("Expected sensitiveItem, got \(error)")
+            }
+        }
+
+        let revealed = try service.detail(id: outcome.item.id, full: true, includeSensitive: true)
+        XCTAssertEqual(revealed.text?.contains("sk_live_"), true)
+    }
+
+    func testAgentSearchAppliesKindTagSinceAndLimitFilters() throws {
+        let (service, repository) = try makeAgentService()
+        _ = try repository.append(payload: .text("meeting notes about lorem"), historyLimit: nil)
+        _ = try repository.append(payload: .text("https://lorem.example.com"), historyLimit: nil)
+
+        let linksOnly = try service.search(
+            query: "lorem",
+            kind: .link,
+            tag: nil,
+            since: nil,
+            limit: 10,
+            includeSensitive: false
+        )
+        XCTAssertEqual(linksOnly.items.map(\.kind), ["link"])
+
+        let tagged = try service.search(
+            query: "",
+            kind: nil,
+            tag: .link,
+            since: nil,
+            limit: 10,
+            includeSensitive: false
+        )
+        XCTAssertEqual(tagged.items.count, 1)
+
+        let futureOnly = try service.search(
+            query: "",
+            kind: nil,
+            tag: nil,
+            since: Date().addingTimeInterval(3_600),
+            limit: 10,
+            includeSensitive: false
+        )
+        XCTAssertTrue(futureOnly.items.isEmpty)
+
+        let limited = try service.search(
+            query: "",
+            kind: nil,
+            tag: nil,
+            since: nil,
+            limit: 1,
+            includeSensitive: false
+        )
+        XCTAssertEqual(limited.items.count, 1)
+        XCTAssertEqual(limited.totalItems, 2)
+    }
+
+    func testAgentDetailReturnsFullTextOnlyWhenRequestedAndTruncatesHugeText() throws {
+        let (service, repository) = try makeAgentService()
+        let hugeText = String(repeating: "x", count: AgentQueryService.maxFullTextCharacters + 5)
+        let outcome = try repository.append(payload: .text(hugeText), historyLimit: nil)
+
+        let preview = try service.detail(id: outcome.item.id, full: false, includeSensitive: false)
+        XCTAssertNil(preview.text)
+        XCTAssertNotNil(preview.preview)
+
+        let full = try service.detail(id: outcome.item.id, full: true, includeSensitive: false)
+        XCTAssertEqual(full.text?.count, AgentQueryService.maxFullTextCharacters)
+        XCTAssertEqual(full.truncated, true)
+        XCTAssertEqual(full.totalChars, hugeText.count)
+    }
+
+    func testAgentSinceParsingAcceptsRelativeAndISOFormats() {
+        let now = Date(timeIntervalSince1970: 1_000_000)
+        XCTAssertEqual(AgentQueryService.parseSince("30m", now: now), now.addingTimeInterval(-1_800))
+        XCTAssertEqual(AgentQueryService.parseSince("2h", now: now), now.addingTimeInterval(-7_200))
+        XCTAssertEqual(AgentQueryService.parseSince("7d", now: now), now.addingTimeInterval(-604_800))
+        XCTAssertNotNil(AgentQueryService.parseSince("2026-07-01T00:00:00Z"))
+        XCTAssertNil(AgentQueryService.parseSince("tomorrow"))
+    }
+
+    // MARK: - AgentCommand parsing
+
+    func testAgentCommandParsesAllCommands() throws {
+        let id = UUID()
+
+        XCTAssertEqual(
+            try AgentCommand.parse(["recent", "--limit", "5", "--include-sensitive"]),
+            .recent(limit: 5, includeSensitive: true)
+        )
+        XCTAssertEqual(
+            try AgentCommand.parse(["search", "invoice", "--kind", "link", "--tag", "pdf", "--since", "7d"]),
+            .search(query: "invoice", kind: .link, tag: .pdf, sinceRaw: "7d", limit: 10, includeSensitive: false)
+        )
+        XCTAssertEqual(
+            try AgentCommand.parse(["get", id.uuidString, "--full"]),
+            .get(id: id, full: true, includeSensitive: false)
+        )
+        XCTAssertEqual(try AgentCommand.parse(["image", id.uuidString]), .image(id: id))
+        XCTAssertEqual(try AgentCommand.parse(["copy", id.uuidString]), .copy(id: id, includeSensitive: false))
+        XCTAssertEqual(try AgentCommand.parse(["add", "hello"]), .add(text: "hello"))
+        XCTAssertEqual(try AgentCommand.parse(["add"]), .add(text: nil))
+        XCTAssertEqual(try AgentCommand.parse(["delete", id.uuidString]), .delete(id: id))
+        XCTAssertEqual(try AgentCommand.parse(["--help"]), .help)
+        XCTAssertEqual(try AgentCommand.parse(["--version"]), .version)
+    }
+
+    func testAgentCommandRejectsInvalidInput() {
+        XCTAssertThrowsError(try AgentCommand.parse([]))
+        XCTAssertThrowsError(try AgentCommand.parse(["frobnicate"]))
+        XCTAssertThrowsError(try AgentCommand.parse(["recent", "--limit", "0"]))
+        XCTAssertThrowsError(try AgentCommand.parse(["recent", "--limit", "abc"]))
+        XCTAssertThrowsError(try AgentCommand.parse(["recent", "--frobnicate"]))
+        XCTAssertThrowsError(try AgentCommand.parse(["search"]))
+        XCTAssertThrowsError(try AgentCommand.parse(["get", "not-a-uuid"]))
+        XCTAssertThrowsError(try AgentCommand.parse(["delete"]))
+    }
+
+    func testAgentCommandClampsOversizedLimit() throws {
+        XCTAssertEqual(
+            try AgentCommand.parse(["recent", "--limit", "1000000000"]),
+            .recent(limit: AgentQueryService.maxLimit, includeSensitive: false)
+        )
+    }
+
+    // MARK: - AgentManifest
+
+    func testAgentManifestRoundTripsAndFailsClosed() throws {
+        let rootDirectory = makeTemporaryDirectory()
+
+        XCTAssertNil(AgentManifest.read(from: rootDirectory))
+
+        let manifest = AgentManifest(
+            schemaVersion: AgentManifest.currentSchemaVersion,
+            appVersion: "0.3.0",
+            platform: "macos",
+            cliPath: "/Applications/TahoePaste.app/Contents/MacOS/tahoepaste-cli",
+            enabled: false,
+            updatedAt: .now
+        )
+        try manifest.write(to: rootDirectory)
+
+        let restored = try XCTUnwrap(AgentManifest.read(from: rootDirectory))
+        XCTAssertFalse(restored.enabled)
+        XCTAssertEqual(restored.cliPath, manifest.cliPath)
+
+        try Data("not json".utf8).write(to: AgentManifest.fileURL(in: rootDirectory))
+        XCTAssertNil(AgentManifest.read(from: rootDirectory))
+    }
+
+    // MARK: - PasteboardItemWriter
+
+    func testPasteboardItemWriterWritesTextAndImage() throws {
+        let storageManager = StorageManager(rootDirectoryURL: makeTemporaryDirectory())
+        let pasteboard = NSPasteboard(name: NSPasteboard.Name("tahoepaste-tests-\(UUID().uuidString)"))
+
+        let textItem = try storageManager.store(payload: .text("restored text"))
+        _ = try PasteboardItemWriter.write(textItem, storageManager: storageManager, pasteboard: pasteboard)
+        XCTAssertEqual(pasteboard.string(forType: .string), "restored text")
+
+        let imageItem = try storageManager.store(payload: .image(makeImage(size: NSSize(width: 20, height: 20), color: .systemPink)))
+        _ = try PasteboardItemWriter.write(imageItem, storageManager: storageManager, pasteboard: pasteboard)
+        XCTAssertTrue(pasteboard.canReadObject(forClasses: [NSImage.self], options: nil))
+    }
+
+    func testPasteboardItemWriterFailurePreservesExistingClipboard() throws {
+        let storageManager = StorageManager(rootDirectoryURL: makeTemporaryDirectory())
+        let pasteboard = NSPasteboard(name: NSPasteboard.Name("tahoepaste-tests-\(UUID().uuidString)"))
+
+        pasteboard.clearContents()
+        pasteboard.setString("precious clipboard", forType: .string)
+
+        let imageItem = try storageManager.store(payload: .image(makeImage(size: NSSize(width: 20, height: 20), color: .systemBrown)))
+        let imageURL = try XCTUnwrap(storageManager.imageURL(for: imageItem))
+        try FileManager.default.removeItem(at: imageURL)
+
+        XCTAssertThrowsError(
+            try PasteboardItemWriter.write(imageItem, storageManager: storageManager, pasteboard: pasteboard)
+        )
+        XCTAssertEqual(pasteboard.string(forType: .string), "precious clipboard")
+    }
+
+    func testPasteboardItemWriterRestoresExistingFilesAndReportsMissingOnes() throws {
+        let storageManager = StorageManager(rootDirectoryURL: makeTemporaryDirectory())
+        let pasteboard = NSPasteboard(name: NSPasteboard.Name("tahoepaste-tests-\(UUID().uuidString)"))
+
+        let scratchDirectory = makeTemporaryDirectory()
+        let existingFileURL = scratchDirectory.appendingPathComponent("kept.txt")
+        let missingFileURL = scratchDirectory.appendingPathComponent("gone.txt")
+        try Data("kept".utf8).write(to: existingFileURL)
+        try Data("gone".utf8).write(to: missingFileURL)
+
+        let item = try storageManager.store(payload: .fileURLs([existingFileURL, missingFileURL]))
+        try FileManager.default.removeItem(at: missingFileURL)
+
+        let result = try PasteboardItemWriter.write(item, storageManager: storageManager, pasteboard: pasteboard)
+
+        XCTAssertEqual(result.restoredFilePaths, [existingFileURL.path])
+        XCTAssertEqual(result.missingFilePaths, [missingFileURL.path])
     }
 
     private func makeTemporaryDirectory() -> URL {
