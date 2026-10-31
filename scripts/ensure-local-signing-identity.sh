@@ -4,7 +4,9 @@ set -euo pipefail
 IDENTITY_NAME="${IDENTITY_NAME:-TahoePaste Local Development}"
 KEYCHAIN_PATH="${KEYCHAIN_PATH:-$HOME/Library/Keychains/login.keychain-db}"
 
-if security find-certificate -a -c "$IDENTITY_NAME" "$KEYCHAIN_PATH" >/dev/null 2>&1; then
+# No `-a`: with it, find-certificate exits 0 even when nothing matches, so
+# the guard would always short-circuit and the identity would never be created.
+if security find-certificate -c "$IDENTITY_NAME" "$KEYCHAIN_PATH" >/dev/null 2>&1; then
   exit 0
 fi
 
@@ -62,7 +64,7 @@ security import "$ARCHIVE_PATH" \
   -T /usr/bin/security \
   >/dev/null
 
-if ! security find-certificate -a -c "$IDENTITY_NAME" "$KEYCHAIN_PATH" >/dev/null 2>&1; then
+if ! security find-certificate -c "$IDENTITY_NAME" "$KEYCHAIN_PATH" >/dev/null 2>&1; then
   echo "Failed to create local code signing identity: $IDENTITY_NAME" >&2
   exit 1
 fi

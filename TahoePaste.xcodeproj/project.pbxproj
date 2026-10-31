@@ -395,8 +395,8 @@
 			projectRoot = "";
 			targets = (
 				3AFAA53154A51624BCB33650 /* TahoePaste */,
-				D04277EA39F64B2C377FC753 /* TahoePasteTests */,
 				9DD44BFBAC324DB41BE2B4B8 /* tahoepaste-cli */,
+				D04277EA39F64B2C377FC753 /* TahoePasteTests */,
 			);
 		};
 /* End PBXProject section */
