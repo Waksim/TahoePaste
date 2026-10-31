@@ -71,6 +71,8 @@ TahoePaste is designed for people who copy constantly and want a clipboard manag
 
 ## Download
 
+The current 0.4.0 release includes the bundled CLI and AI agent skill on both platforms.
+
 The easiest way to try TahoePaste is from the latest GitHub release:
 
 | Platform | Asset | Direct latest link |
